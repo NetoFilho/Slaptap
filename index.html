@@ -4,604 +4,478 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Neto Filho - Especialista em Desenvolvimento Web e Aplicativos. Crie soluções inovadoras e modernas para seu negócio.">
-    <link rel="icon" href="fruits.png" type="image/png">
-    <title>Serviços - NetoFilho</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Slaptap - Baixe Agora</title>
+    <meta name="description" content="Slaptap - O novo aplicativo que está revolucionando o entretenimento adulto. Baixe agora e descubra uma nova experiência." />
+    <link rel="icon" type="image/png" href="favicon.png">
     <style>
-        :root {
-            --primary: #2563eb;
-            --secondary: #1e40af;
-            --light: #f8fafc;
-            --dark: #0f172a;
-            --gray: #64748b;
-        }
+        /* Importando fonte moderna */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+        /* Reset e base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
+            font-family: 'Poppins', sans-serif;
         }
 
         body {
-            background: var(--light);
-            color: var(--dark);
+            background: linear-gradient(135deg, #13151a 0%, #090a0f 100%);
+            color: #ffffff;
             line-height: 1.6;
         }
 
-        .hero {
-            height: 100vh;
-            padding: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            text-align: center;
+        /* Container base */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
-        .hero-content {
-            max-width: 1200px;
+        /* Header */
+        header {
+            background: rgba(19, 21, 26, 0.8);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #FF3366, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: linear-gradient(45deg, #FF3366, #FF6B6B);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 180px 0 10px;
+            text-align: center;
+            background: radial-gradient(circle at top, rgba(255, 51, 102, 0.1) 0%, transparent 70%);
         }
 
         .hero h1 {
             font-size: 3.5rem;
-            line-height: 1.2;
-            margin-bottom: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, #FF3366, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .hero p {
             font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
+            color: #a0a0a0;
+            max-width: 600px;
+            margin: 0 auto 3rem;
         }
 
-        .btn {
-            padding: 1rem 2rem;
+        /* Botões */
+        .button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-primary {
-            background: white;
-            color: var(--primary);
+        .button-primary {
+            background: linear-gradient(45deg, #FF3366, #FF6B6B);
+            color: white;
+            margin: 0 1rem;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        .button-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            margin: 0 1rem;
         }
 
-        .section {
-            padding: 6rem 2rem;
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 51, 102, 0.2);
         }
 
-        .section-title {
+        /* Features */
+        .features {
+            padding: 100px 0;
+            background: rgba(19, 21, 26, 0.5);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .feature:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .feature h3 {
+            color: #FF3366;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .feature p {
+            color: #a0a0a0;
+        }
+
+        /* Download Section */
+        .download {
+            padding: 100px 0;
             text-align: center;
-            margin-bottom: 4rem;
         }
 
-        .section-title h2 {
-            font-size: 2.5rem;
-            color: var(--dark);
+        .download-cards {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .download-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 300px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .download-card:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .download-card h3 {
+            color: #FF3366;
+            font-size: 1.8rem;
             margin-bottom: 1rem;
         }
 
-        .section-title p {
-            color: var(--gray);
+        /* FAQ */
+        .faq {
+            padding: 100px 0;
+            background: rgba(19, 21, 26, 0.5);
+        }
+
+        .faq-container {
+            max-width: 800px;
+            margin: 3rem auto 0;
+        }
+
+        .faq-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .faq-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(10px);
+        }
+
+        .faq-item h3 {
+            color: #FF3366;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .faq-item p {
+            color: #a0a0a0;
+        }
+
+        /* Footer */
+        footer {
+            background: #13151a;
+            padding: 3rem 0;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .footer-links a {
+            color: #a0a0a0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #FF3366;
+        }
+
+        /* Títulos de seção */
+        section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #FF3366, #FF6B6B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        section p {
+            text-align: center;
+            color: #a0a0a0;
             max-width: 600px;
             margin: 0 auto;
         }
 
-        .services {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        /* Responsividade */
+        @media (max-width: 968px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
-        .service-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s;
-            text-align: center;
-        }
-
-        .service-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .service-icon {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
-        }
-
-        .portfolio-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .portfolio-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(37, 99, 235, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .portfolio-item:hover .portfolio-overlay {
-            opacity: 1;
-        }
-
-        .portfolio-info {
-            color: white;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .contact-form {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.8rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            transition: border-color 0.3s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .price-calculator {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            margin-top: 2rem;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .feature-card {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .feature-icon {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .testimonials {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .testimonial-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .testimonial-text {
-            font-style: italic;
-            margin-bottom: 1rem;
-        }
-
-        .testimonial-author {
-            font-weight: 600;
-        }
-
-        footer {
-            background: var(--dark);
-            color: white;
-            padding: 4rem 2rem;
-            margin-top: 4rem;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-
-        .footer-section h3 {
-            margin-bottom: 1rem;
-            color: var(--primary);
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-
-        .footer-links a:hover {
-            opacity: 1;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .social-links a {
-            color: white;
-            font-size: 1.5rem;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-
-        .social-links a:hover {
-            opacity: 1;
+            .hero h1 {
+                font-size: 2.8rem;
+            }
         }
 
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
             .nav-links {
                 display: none;
             }
 
-            .section {
-                padding: 4rem 1rem;
+            .download-cards {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .button {
+                display: block;
+                margin: 1rem auto;
+                width: 80%;
+                text-align: center;
             }
         }
 
-        .portfolio-item {
-            position: relative;
-            border-radius: 20px;
-            overflow: hidden;
-            aspect-ratio: 16/9;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* Gera imagens usando gradientes e padrões CSS para simular screenshots */
-        .portfolio-item:nth-child(1) {
-            background-image: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-            background-size: cover;
+        .hero,
+        .feature,
+        .download-card,
+        .faq-item {
+            animation: fadeIn 0.6s ease-out forwards;
         }
 
-        .portfolio-item:nth-child(2) {
-            background-image: linear-gradient(45deg, #45B7D1, #2C3E50);
-            background-size: cover;
+        .feature:nth-child(2) {
+            animation-delay: 0.2s;
         }
 
-        .portfolio-item:nth-child(3) {
-            background-image: linear-gradient(45deg, #6C63FF, #3F3D56);
-            background-size: cover;
-        }
-
-        .success-message {
-            display: none;
-            background-color: #4CAF50;
-            color: white;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-top: 1rem;
-            text-align: center;
-        }
-
-        .error-message {
-            display: none;
-            background-color: #f44336;
-            color: white;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-top: 1rem;
-            text-align: center;
+        .feature:nth-child(3) {
+            animation-delay: 0.4s;
         }
     </style>
 </head>
 
 <body>
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1>Transforme seu negócio com soluções digitais</h1>
-            <p>Desenvolvimento de websites, aplicativos e sistemas sob medida para sua empresa</p>
-            <a href="#contact" class="btn btn-primary">Solicitar Orçamento</a>
-        </div>
-    </section>
+    <header>
+        <nav class="container">
+            <div class="logo">Slaptap</div>
+            <div class="nav-links">
+                <a href="#features">Recursos</a>
+                <a href="#download">Download</a>
+                <a href="#faq">FAQ</a>
+            </div>
+        </nav>
+    </header>
 
-    <section id="services" class="section">
-        <div class="section-title">
-            <h2>Nossos Serviços</h2>
-            <p>Soluções completas para sua presença digital</p>
-        </div>
-        <div class="services">
-            <div class="service-card">
-                <div class="service-icon">
-                    <i class="fas fa-globe"></i>
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <h1>Descubra o Slaptap</h1>
+                <p>O novo aplicativo que está revolucionando o entretenimento adulto</p>
+                <div class="download-buttons">
+                    <a href="#" class="button button-primary" onclick="iniciarDownloadAPK()">Download para Android</a>
+                    <a href="https://netofilho.itch.io/slaptap" class="button button-secondary">Executar na Web</a>
                 </div>
-                <h3>Websites</h3>
-                <p>Sites responsivos e otimizados para todos os dispositivos</p>
+                <img src="baner.png" alt="Slaptap App Preview" style="max-width: 100%; margin-top: 3rem; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
             </div>
-            <div class="service-card">
-                <div class="service-icon">
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                <h3>Aplicativos</h3>
-                <p>Apps nativos para iOS e Android</p>
-            </div>
-            <div class="service-card">
-                <div class="service-icon">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
-                <h3>E-commerce</h3>
-                <p>Lojas virtuais completas e personalizadas</p>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="features" class="section">
-        <div class="section-title">
-            <h2>Por que nos escolher?</h2>
-            <p>Compromisso com qualidade e resultados</p>
-        </div>
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <h3>Entrega Rápida</h3>
-                <p>Projetos entregues no prazo combinado</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-code"></i>
-                </div>
-                <h3>Código Limpo</h3>
-                <p>Desenvolvimento com as melhores práticas</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-headset"></i>
-                </div>
-                <h3>Suporte Contínuo</h3>
-                <p>Assistência técnica especializada</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="portfolio" class="section">
-        <div class="section-title">
-            <h2>Portfólio</h2>
-            <p>Conheça alguns de nossos projetos</p>
-        </div>
-        <div class="portfolio-grid">
-            <div class="portfolio-item">
-                <div class="portfolio-overlay">
-                    <div class="portfolio-info">
-                        <h3>App Delivery</h3>
-                        <p>Aplicativo de entrega para restaurantes e demais serviços</p>
+        <!-- Features -->
+        <section id="features" class="features">
+            <div class="container">
+                <h2>Por que escolher o Slaptap?</h2>
+                <p>Descubra os recursos que fazem do Slaptap o melhor app da categoria</p>
+                <div class="features-grid">
+                    <div class="feature">
+                        <h3>Conteúdo Exclusivo</h3>
+                        <p>Acesse conteúdo único e personalizado com ótima qualidade.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Interface Intuitiva</h3>
+                        <p>Design moderno e fácil de usar, pensado para a melhor experiência.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>Privacidade Garantida</h3>
+                        <p>Sua privacidade é nossa prioridade. Navegue com total segurança.</p>
                     </div>
                 </div>
             </div>
-            <div class="portfolio-item">
-                <div class="portfolio-overlay">
-                    <div class="portfolio-info">
-                        <h3>E-commerce</h3>
-                        <p>Loja virtual completa</p>
+        </section>
+
+        <!-- Download Section -->
+        <section id="download" class="download">
+            <div class="container">
+                <h2>Pronto para começar?</h2>
+                <p>Escolha sua plataforma e comece a explorar agora mesmo</p>
+                <div class="download-cards">
+                    <div class="download-card">
+                        <h3>Android</h3>
+                        <p>Versão 1.0.0 beta</p>
+                        <a href="#" class="button button-primary" onclick="iniciarDownloadAPK()">Baixar APK</a>
+                    </div>
+                    <div class="download-card">
+                        <h3>Web</h3>
+                        <p>Versão 1.0.0</p>
+                        <a href="https://netofilho.itch.io/slaptap" class="button button-primary" target="_blank" rel="noopener noreferrer">Abrir no Navegador</a>
                     </div>
                 </div>
             </div>
-            <div class="portfolio-item">
-                <div class="portfolio-overlay">
-                    <div class="portfolio-info">
-                        <h3>Anúcios</h3>
-                        <p>Seu comércio ainda mais presente no futuro</p>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="faq">
+            <div class="container">
+                <h2>Perguntas Frequentes</h2>
+                <p>Tire suas dúvidas sobre o Slaptap</p>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <h3>É nescessário login?</h3>
+                        <p>Pra sua segurança não solicitamos login ao acessar o aplicativo.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>O aplicativo é seguro?</h3>
+                        <p>Sim, utilizamos criptografia de ponta a ponta e não armazenamos dados sensíveis.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Preciso pagar para usar?</h3>
+                        <p>O download do APK tem um custo, mas a versão web é totalmente grátis apesar de ter limitações.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Como faço para ser um criador?</h3>
+                        <p>Até o momento não se é possível ser criador de conteúdo.</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <section id="testimonials" class="section">
-        <div class="section-title">
-            <h2>Depoimentos</h2>
-            <p>O que nossos clientes dizem</p>
-        </div>
-        <div class="testimonials">
-            <div class="testimonial-card">
-                <p class="testimonial-text">"Excelente trabalho! Superou todas as expectativas."</p>
-                <p class="testimonial-author">João Silva - Restaurante Vila Nova</p>
-            </div>
-            <div class="testimonial-card">
-                <p class="testimonial-text">"Profissionais competentes e comprometidos."</p>
-                <p class="testimonial-author">Maria Santos - Boutique Mary</p>
-            </div>
-            <div class="testimonial-card">
-                <p class="testimonial-text">"O melhor investimento para meu negócio!"</p>
-                <p class="testimonial-author">Pedro Costa - Mercado Express</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="contact" class="section">
-        <div class="section-title">
-            <h2>Contato</h2>
-            <p>As menores taxas, o seu bolso agradece</p>
-        </div>
-        <div class="contact-form">
-            <form id="quotationForm">
-                <div class="form-group">
-                    <label>Tipo de Projeto</label>
-                    <select class="form-control" id="projectType" name="projectType" required>
-                        <option value="Website Básico 2.500">Website Básico - R$ 2.500/mês</option>
-                        <option value="Website Avançado 3.000">Website Avançado - R$ 3.000/mês</option>
-                        <option value="App Mobile 3.500">App Mobile - R$ 3.500/mês</option>
-                        <option value="E-commerce 4.000">E-commerce - R$ 4.000/mês</option>
-                        <option value="Sistema Completo 5.000">Sistema Completo - R$ 5.000/mês</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Nome</label>
-                    <input type="text" class="form-control" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" class="form-control" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label>Telefone</label>
-                    <input type="tel" class="form-control" name="phone" required>
-                </div>
-                <div class="form-group">
-                    <label>Mensagem * opicional</label>
-                    <textarea class="form-control" name="message" rows="4"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Enviar Pedido</button>
-                <div id="successMessage" class="success-message">Responderemos seu Email em 24 horas!!</div>
-                <div id="errorMessage" class="error-message">Verifique sua conexão a internet, e tente novamente</div>
-            </form>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Neto Filho</h3>
-                <p>"Torne seu serviço o melhor da sua cidade!"</p>
-                <div class="social-links">
-                    <a href="#"><i class="fas fa-thumbs-up"></i></a>
-                    <a href="#"><i class="fas fa-meh" style="color: yellow;"></i></a>
-                    <a href="#"><i class="far fa-thumbs-down"></i></a>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h3>Seções</h3>
-                <ul class="footer-links">
-                    <li><a href="#home">Início</a></li>
-                    <li><a href="#services">Serviços</a></li>
-                    <li><a href="#portfolio">Portfólio</a></li>
-                    <li><a href="#contact">Contato</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h3>Contato</h3>
-                <p>
-                    <i class="fas fa-phone"></i> +55 75 99859-0156<br>
-                    <i class="fas fa-envelope"></i> Kbam2024br@gmail.com<br>
-                    <i class="fas fa-map-marker-alt"></i> Salvador, BA
-                </p>
+        <div class="container">
+            <p>© 2025 Slaptap. Todos os direitos reservados.</p>
+            <div class="footer-links">
+                <a href="termos.html">Termos de Uso</a>
+                <a href="privacidade.html">Política de Privacidade</a>
+                <a href="suporte.html">Suporte</a>
             </div>
         </div>
     </footer>
 
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-    </script>
     <script>
-        (function() {
-            emailjs.init({
-                publicKey: "MDfv_cBhnXQCCu2nY"
-            });
-        })();
+        function iniciarDownloadAPK() {
 
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
+            const apkUrl = 'https://drive.google.com/uc?export=download&id=14r0hDF6KEVQy9Y8oILtlxdcGQRwK60m7';
 
-        document.getElementById('quotationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+            const link = document.createElement('a');
+            link.href = apkUrl;
 
-            const formData = new FormData(this);
-            const successMessage = document.getElementById('successMessage');
-            const errorMessage = document.getElementById('errorMessage');
+            link.download = 'Slaptap.apk';
 
-            // Configure os parâmetros para o template
-            const templateParams = {
-                projectType: formData.get('projectType'),
-                name: formData.get('name'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
-                message: formData.get('message')
-            };
+            document.body.appendChild(link);
 
-            // Use EmailJS para enviar o e-mail
-            emailjs.send('service_td31bvi', 'template_vdypk54', templateParams)
-                .then((response) => {
-                    console.log('E-mail enviado com sucesso:', response.status, response.text);
-                    successMessage.style.display = "block";
-                    errorMessage.style.display = "none";
-                    this.reset();
-                    setTimeout(() => {
-                        successMessage.style.display = "none";
-                    }, 5000);
-                })
-                .catch((error) => {
-                    console.error('Erro no envio do e-mail:', error);
-                    errorMessage.style.display = "block";
-                    successMessage.style.display = "none";
-                });
-        });
+            link.click();
+
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 
