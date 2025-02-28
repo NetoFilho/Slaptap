@@ -210,6 +210,7 @@
         }
 
         .loading {
+            display: none;
             position: fixed;
             top: 50%;
             left: 50%;
@@ -391,7 +392,7 @@
         <button class="nav-button upload-button" id="uploadBtn">
             <i class="fa-solid fa-plus"></i>
         </button>
-        <button class="nav-button" onclick="showModal()">
+        <button class="nav-button" onclick="location.href='media.html'">
             <i class="fa-solid fa-images"></i>
         </button>
     </nav>
@@ -442,7 +443,7 @@
         const mediaContainer = document.getElementById('mediaContainer');
         const fileInput = document.getElementById('fileInput');
         const uploadBtn = document.getElementById('uploadBtn');
-        
+
         // Geração e gerenciamento do UserID - simplifcado
         const getUserId = () => {
             const key = 'userUniqueId';
@@ -476,19 +477,42 @@
             }
         };
 
+        // Função de "download": salva informações em localStorage
+        const downloadMedia = (item, mediaElem) => {
+            const key = 'downloadedMedia-' + currentUserId;
+            let downloaded = JSON.parse(localStorage.getItem(key)) || [];
+            if (!downloaded.find(it => it.id === item.id)) {
+                downloaded.push({
+                    id: item.id,
+                    url: item.mediaUrl,
+                    type: item.type,
+                    timestamp: item.timestamp
+                });
+                localStorage.setItem(key, JSON.stringify(downloaded));
+                updateDoc(doc(db, 'media', item.id), {
+                    downloads: increment(1)
+                }).catch(error => console.error("Erro ao atualizar downloads:", error));
+                const downloadsCounter = mediaElem.querySelector('.downloads-display .counter');
+                downloadsCounter.textContent = parseInt(downloadsCounter.textContent) + 1;
+                alert('Mídia salva localmente!');
+            } else {
+                alert('Mídia já está salva!');
+            }
+        };
+
         const MAX_DIRECT_SIZE = 20 * 1024 * 1024;
         let isLoading = false;
         let totalMediaCount = 0;
         let mediaObservers = [];
         const loadedMediaIds = new Set();
-        
+
         // Performance optimization: use IntersectionObserver for videos
         const videoObserverOptions = {
             root: null,
             rootMargin: '0px',
             threshold: 0.5
         };
-        
+
         const handleVideoVisibility = (video) => {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -508,7 +532,7 @@
                     }
                 });
             }, videoObserverOptions);
-            
+
             observer.observe(video);
             mediaObservers.push(observer);
             return observer;
@@ -521,13 +545,13 @@
                 return null;
             }
             loadedMediaIds.add(item.id);
-            
+
             const mediaItem = document.createElement('div');
             mediaItem.className = 'media-item';
             mediaItem.dataset.id = item.id;
-            
+
             const fragment = document.createDocumentFragment();
-            
+
             // Criando o conteúdo principal
             if (item.type === 'video') {
                 if (item.fileSize > MAX_DIRECT_SIZE) {
@@ -545,14 +569,14 @@
                     video.setAttribute('muted', '');
                     video.setAttribute('loop', '');
                     video.setAttribute('preload', 'metadata');
-                    
+
                     const source = document.createElement('source');
                     source.src = item.mediaUrl;
                     source.type = 'video/mp4';
-                    
+
                     video.appendChild(source);
                     fragment.appendChild(video);
-                    
+
                     // Botão de mudo
                     const muteBtn = document.createElement('button');
                     muteBtn.className = 'mute-btn';
@@ -560,23 +584,23 @@
                     muteBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         video.muted = !video.muted;
-                        muteBtn.innerHTML = video.muted 
-                            ? `<i class="fa-solid fa-volume-mute" style="color: white;"></i>` 
-                            : `<i class="fa-solid fa-volume-high" style="color: white;"></i>`;
+                        muteBtn.innerHTML = video.muted ?
+                            `<i class="fa-solid fa-volume-mute" style="color: white;"></i>` :
+                            `<i class="fa-solid fa-volume-high" style="color: white;"></i>`;
                     });
                     fragment.appendChild(muteBtn);
-                    
+
                     // Aguardaremos para configurar o observer após anexar ao DOM
                 }
             } else if (item.type === 'image') {
                 const imgContainer = document.createElement('div');
                 imgContainer.className = 'image-container';
-                
+
                 const img = document.createElement('img');
                 img.src = item.mediaUrl;
                 img.setAttribute('loading', 'lazy');
                 img.setAttribute('alt', 'Conteúdo de Mídia');
-                
+
                 imgContainer.appendChild(img);
                 fragment.appendChild(imgContainer);
             }
@@ -592,8 +616,8 @@
             downloadBtn.className = 'download-btn';
             downloadBtn.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i>`;
             downloadBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                showModal();
+                e.stopPropagation(); // Evita que eventos de clique em outros elementos sejam acionados
+                downloadMedia(item, mediaItem);
             });
             fragment.appendChild(downloadBtn);
 
@@ -625,7 +649,7 @@
 
             // Anexar todos os elementos criados ao item de mídia
             mediaItem.appendChild(fragment);
-            
+
             return mediaItem;
         };
 
@@ -636,7 +660,7 @@
                 const likesCounter = mediaElem.querySelector('.likes-display .counter');
                 const currentLikes = parseInt(likesCounter.textContent);
                 likesCounter.textContent = currentLikes + 1;
-                
+
                 // Atualizar no banco de dados em segundo plano
                 await updateDoc(doc(db, 'media', item.id), {
                     likes: increment(1)
@@ -655,7 +679,9 @@
                 const mediaCol = collection(db, 'media');
                 const randomMedia = [];
                 // Gera números aleatórios em batch
-                const randomNumbers = Array.from({length: 5}, () => Math.random());
+                const randomNumbers = Array.from({
+                    length: 5
+                }, () => Math.random());
 
                 const promises = randomNumbers.map(async (rnd) => {
                     let q = query(mediaCol, where('random', '>=', rnd), orderBy('random'), limit(1));
@@ -726,9 +752,9 @@
         const renderAdItem = async (ad) => {
             const adItem = document.createElement('div');
             adItem.className = 'ad-item';
-            
+
             const fragment = document.createDocumentFragment();
-            
+
             // Adicionar o conteúdo da mídia
             if (ad.type === 'video') {
                 const video = document.createElement('video');
@@ -737,22 +763,22 @@
                 video.setAttribute('muted', '');
                 video.setAttribute('loop', '');
                 video.setAttribute('preload', 'metadata');
-                
+
                 const source = document.createElement('source');
                 source.src = ad.mediaUrl;
                 source.type = 'video/mp4';
-                
+
                 video.appendChild(source);
                 fragment.appendChild(video);
             } else if (ad.type === 'image') {
                 const imgContainer = document.createElement('div');
                 imgContainer.className = 'image-container';
-                
+
                 const img = document.createElement('img');
                 img.src = ad.mediaUrl;
                 img.setAttribute('loading', 'lazy');
                 img.setAttribute('alt', 'Conteúdo Patrocinado');
-                
+
                 imgContainer.appendChild(img);
                 fragment.appendChild(imgContainer);
             }
@@ -784,7 +810,7 @@
             fragment.appendChild(ctaButton);
 
             adItem.appendChild(fragment);
-            
+
             return adItem;
         };
 
@@ -792,32 +818,32 @@
         const loadMoreMedia = async () => {
             if (isLoading) return;
             isLoading = true;
-            
+
             try {
                 const randomMediaItems = await fetchRandomMediaFromFirestore();
-                
+
                 if (randomMediaItems.length === 0) {
                     console.log("Nenhuma nova mídia para carregar");
                     isLoading = false;
                     return;
                 }
-                
+
                 const fragment = document.createDocumentFragment();
                 let videoElements = [];
-                
+
                 for (const item of randomMediaItems) {
                     try {
                         const mediaElem = await renderMediaItem(item);
                         if (mediaElem) {
                             fragment.appendChild(mediaElem);
                             totalMediaCount++;
-                            
+
                             // Coleta vídeos para configurar observers depois
                             if (item.type === 'video') {
                                 const video = mediaElem.querySelector('video');
                                 if (video) videoElements.push(video);
                             }
-                            
+
                             // Adicionar um anúncio a cada 5 mídias
                             if (totalMediaCount % 5 === 0) {
                                 try {
@@ -825,7 +851,7 @@
                                     if (ad) {
                                         const adElem = await renderAdItem(ad);
                                         fragment.appendChild(adElem);
-                                        
+
                                         // Coleta vídeos de anúncios também
                                         if (ad.type === 'video') {
                                             const adVideo = adElem.querySelector('video');
@@ -841,15 +867,15 @@
                         console.error("Erro ao renderizar item de mídia:", err);
                     }
                 }
-                
+
                 // Anexa todos os elementos de uma vez para melhor performance
                 mediaContainer.appendChild(fragment);
-                
+
                 // Configura os observers para vídeos depois de anexar ao DOM
                 videoElements.forEach(video => {
                     handleVideoVisibility(video);
                 });
-                
+
             } catch (error) {
                 console.error("Erro ao carregar mais mídia:", error);
             } finally {
@@ -860,7 +886,7 @@
         // Inicializa a aplicação
         const initializeMedia = async () => {
             mediaContainer.innerHTML = '<div class="loading">Loading...</div>';
-            
+
             // Limpar observers existentes
             mediaObservers.forEach(observer => {
                 observer.disconnect();
@@ -868,7 +894,7 @@
             mediaObservers = [];
             loadedMediaIds.clear();
             totalMediaCount = 0;
-            
+
             await loadMoreMedia();
         };
 
@@ -878,13 +904,13 @@
             const formData = new FormData();
             formData.append('chat_id', CHAT_ID);
             formData.append('document', file);
-            
+
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const data = await response.json();
                 if (!data.ok) {
                     console.error('Erro ao enviar arquivo:', data);
@@ -912,17 +938,7 @@
                 }
             };
         };
-        
-        // Exportar funções para o escopo global
-        window.showModal = () => {
-            document.getElementById('appModal').style.display = 'flex';
-        };
-        
-        window.closeModal = () => {
-            document.getElementById('appModal').style.display = 'none';
-            window.open('https://netofilho.itch.io/slaptap/purchase?initiator=mobile', '_blank');
-        };
-        
+
         // Event listeners
         fileInput.addEventListener('change', (event) => {
             const files = event.target.files;
@@ -932,18 +948,18 @@
                 }
             }
         });
-        
+
         uploadBtn.addEventListener('click', () => {
             fileInput.click();
         });
-        
+
         // Scroll handler otimizado com throttle
         mediaContainer.addEventListener('scroll', throttle(() => {
             if (mediaContainer.scrollHeight - mediaContainer.scrollTop <= mediaContainer.clientHeight + 200) {
                 loadMoreMedia();
             }
         }, 200));
-        
+
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
             initializeMedia();
