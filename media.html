@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria de Mídia</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1a1a1a;
+      color: #fff;
+    }
+    .top-bar {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .back-button {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding-left: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .back-button svg {
+      width: 25px;
+      height: 25px;
+    }
+    .delete-button {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding-right: 8px;
+      display: none;
+    }
+    .delete-button svg {
+      width: 25px;
+      height: 25px;
+    }
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      padding: 5px;
+      padding-top: 69px;
+    }
+    .media-item {
+      position: relative;
+      aspect-ratio: 1;
+      cursor: pointer;
+      overflow: hidden;
+      background-color: #2a2a2a;
+      transition: transform 0.3s ease;
+      border: 2px solid transparent;
+    }
+    .media-item.selected {
+      border-color: #2196f3;
+    }
+    .media-item img,
+    .media-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .timestamp {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 5px;
+      font-size: 12px;
+      text-align: center;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: black;
+      z-index: 1000;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal.active {
+      display: flex;
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      touch-action: none;
+    }
+    .modal-media-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      transition: transform 0.3s ease;
+    }
+    .modal-media-item {
+      flex: 0 0 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-media-item img,
+    .modal-media-item video {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+    .modal-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      border: none;
+      padding: 15px;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .modal-prev {
+      left: 0;
+      display: none;
+    }
+    .modal-next {
+      right: 0;
+      display: none;
+    }
+    .close-modal,
+    .info-button {
+      position: absolute;
+      top: 15px;
+      color: #fff;
+      font-size: 25px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .close-modal {
+      right: 15px;
+    }
+    .info-button {
+      right: 55px;
+    }
+    .item-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 25px;
+      width: auto;
+      color: #fff;
+      padding: 15px;
+      font-size: 16px;
+      z-index: 1002;
+      display: none;
+    }
+    .no-media {
+      text-align: center;
+      grid-column: 1/-1;
+      padding: 40px;
+      background-color: #1a1a1a;
+    }
+    @media (max-width:768px) {
+      .media-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Barra superior -->
+  <div class="top-bar">
+    <div class="left-section">
+      <button class="back-button" onclick="history.back()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <h3>Storage</h3>
+    </div>
+    <button class="delete-button" onclick="deleteSelected()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Galeria de mídias -->
+  <div class="media-grid" id="mediaGrid"></div>
+
+  <!-- Modal para visualização em tela cheia -->
+  <div class="modal" id="mediaModal">
+    <button class="close-modal" onclick="closeModal()">×</button>
+    <button class="info-button" onclick="toggleInfo()">i</button>
+    <button class="modal-nav modal-prev" onclick="navigateModal(-1)">❮</button>
+    <button class="modal-nav modal-next" onclick="navigateModal(1)">❯</button>
+    <div class="modal-content" id="modalContentContainer">
+      <div class="modal-media-container" id="modalContent"></div>
+      <div class="item-info" id="itemInfo"></div>
+    </div>
+  </div>
+
+  <script>
+    // Gera e recupera o currentUserId
+    function generateUserId(length = 16) {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const timestamp = new Date().getTime().toString(36);
+      let randomPart = '';
+      for (let i = 0; i < length - timestamp.length; i++) {
+        randomPart += characters[Math.floor(Math.random() * characters.length)];
+      }
+      return `${timestamp}${randomPart}`;
+    }
+    function getUserId() {
+      const key = 'userUniqueId';
+      let userId = localStorage.getItem(key);
+      if (!userId) {
+        userId = generateUserId();
+        localStorage.setItem(key, userId);
+      }
+      return userId;
+    }
+    const currentUserId = getUserId();
+
+    let currentMediaIndex = 0,
+        savedMedia = [],
+        currentVideo = null,
+        selectedItems = new Set(),
+        selectionMode = false,
+        pressTimer;
+
+    // Função para formatar datas de forma segura
+    function formatDate(d) {
+      let date = new Date(d);
+      if (isNaN(date.getTime())) return "N/A";
+      return date.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Funções para seleção de mídia
+    function startPress(index) {
+      pressTimer = setTimeout(() => {
+        enterSelectionMode(index);
+      }, 500);
+    }
+    function cancelPress() {
+      clearTimeout(pressTimer);
+    }
+    function enterSelectionMode(index) {
+      selectionMode = true;
+      toggleSelection(index);
+      updateDeleteButton();
+    }
+    function toggleSelection(index) {
+      const item = document.querySelectorAll('.media-item')[index];
+      if (selectedItems.has(index)) {
+        selectedItems.delete(index);
+        item.classList.remove('selected');
+      } else {
+        selectedItems.add(index);
+        item.classList.add('selected');
+      }
+      updateDeleteButton();
+    }
+    function updateDeleteButton() {
+      const deleteButton = document.querySelector('.delete-button');
+      deleteButton.style.display = selectedItems.size > 0 ? 'block' : 'none';
+    }
+    function handleClick(index) {
+      if (selectionMode) {
+        toggleSelection(index);
+      } else {
+        openModal(index);
+      }
+    }
+    function deleteSelected() {
+      const indices = Array.from(selectedItems).sort((a, b) => b - a);
+      indices.forEach(index => {
+        savedMedia.splice(index, 1);
+      });
+      localStorage.setItem('downloadedMedia-' + currentUserId, JSON.stringify(savedMedia));
+      selectedItems.clear();
+      selectionMode = false;
+      updateDeleteButton();
+      renderMediaGrid();
+    }
+    function exitSelectionMode() {
+      if (selectionMode) {
+        selectionMode = false;
+        selectedItems.clear();
+        document.querySelectorAll('.media-item').forEach(item => {
+          item.classList.remove('selected');
+        });
+        updateDeleteButton();
+      }
+    }
+
+    // Renderiza a grid de mídias a partir do localStorage
+    // Utiliza a chave "downloadedMedia-" + currentUserId
+    function renderMediaGrid() {
+      const grid = document.getElementById('mediaGrid');
+      savedMedia = JSON.parse(localStorage.getItem('downloadedMedia-' + currentUserId)) || [];
+      if (!savedMedia.length) {
+        grid.innerHTML = `<div class="no-media"><h2>No media saved</h2><p>Saved media will appear here.</p></div>`;
+        return;
+      }
+      grid.innerHTML = savedMedia.map((m, i) => `
+        <div class="media-item ${selectedItems.has(i) ? 'selected' : ''}"
+          ontouchstart="startPress(${i})"
+          ontouchend="cancelPress()"
+          onclick="handleClick(${i})">
+          ${m.type.toLowerCase() === 'video' ?
+            `<video src="${m.url}" muted loop playsinline>Seu navegador não suporta vídeos.</video>` :
+            `<img src="${m.url}" alt="Mídia ${i + 1}">`}
+          <div class="timestamp">${formatDate(m.timestamp)}</div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.media-item video').forEach(v => {
+        v.parentElement.addEventListener('mouseenter', () => {
+          v.play().catch(() => {});
+        });
+        v.parentElement.addEventListener('mouseleave', () => {
+          v.pause();
+          v.currentTime = 0;
+        });
+      });
+    }
+
+    // Modal para visualização em tela cheia
+    function openModal(i) {
+      currentMediaIndex = i;
+      const modal = document.getElementById('mediaModal');
+      updateModalContent();
+      modal.classList.add('active');
+      document.getElementById('itemInfo').style.display = "none";
+    }
+    function updateModalContent() {
+      const container = document.getElementById('modalContent');
+      container.innerHTML = savedMedia.map(m => `
+        <div class="modal-media-item">
+          ${m.type.toLowerCase() === 'video' ?
+            `<video src="${m.url}" controls loop playsinline>Seu navegador não suporta vídeos.</video>` :
+            `<img src="${m.url}" alt="Mídia em tela cheia">`}
+        </div>
+      `).join('');
+      container.style.transform = `translateX(-${currentMediaIndex * 100}%)`;
+      const current = savedMedia[currentMediaIndex];
+      if (current && current.type.toLowerCase() === 'video') {
+        const vid = container.children[currentMediaIndex].querySelector('video');
+        if (vid) {
+          vid.play().catch(() => {});
+          currentVideo = vid;
+        }
+      }
+    }
+    function navigateModal(dir) {
+      if (currentVideo) {
+        currentVideo.pause();
+        currentVideo = null;
+      }
+      let ni = currentMediaIndex + dir;
+      if (ni >= 0 && ni < savedMedia.length) {
+        currentMediaIndex = ni;
+        updateModalContent();
+        document.getElementById('itemInfo').style.display = "none";
+      }
+    }
+    function closeModal() {
+      if (currentVideo) {
+        currentVideo.pause();
+        currentVideo = null;
+      }
+      document.getElementById('mediaModal').classList.remove('active');
+      document.getElementById('modalContent').innerHTML = "";
+      document.getElementById('itemInfo').style.display = "none";
+    }
+    function toggleInfo() {
+      const info = document.getElementById('itemInfo');
+      if (info.style.display === "block") {
+        info.style.display = "none";
+        return;
+      }
+      const m = savedMedia[currentMediaIndex];
+      info.innerHTML = `<strong>Tipo:</strong> ${m.type}<br><strong>Data:</strong> ${formatDate(m.timestamp)}`;
+      info.style.display = "block";
+    }
+
+    // Eventos para sair do modo de seleção
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.media-item') && !event.target.closest('.delete-button')) {
+        exitSelectionMode();
+      }
+    });
+    document.addEventListener('DOMContentLoaded', renderMediaGrid);
+
+    // Configurações para navegação por toque no modal
+    const modalContentContainer = document.getElementById('modalContentContainer');
+    const modalContent = document.getElementById('modalContent');
+    let touchStartX = 0,
+        touchStartY = 0,
+        dx = 0,
+        pinchActive = false,
+        initialDistance = 0;
+    modalContentContainer.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+      if (e.touches.length === 2) {
+        pinchActive = true;
+        initialDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      }
+    });
+    modalContentContainer.addEventListener('touchmove', e => {
+      if (pinchActive && e.touches.length === 2) {
+        let currentDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        let scale = currentDistance / initialDistance;
+        let currentItem = modalContent.children[currentMediaIndex].querySelector('img,video');
+        if (currentItem) {
+          currentItem.style.transform = `scale(${scale})`;
+        }
+      } else if (e.touches.length === 1 && !pinchActive) {
+        dx = e.touches[0].clientX - touchStartX;
+        let perc = (dx / modalContentContainer.clientWidth) * 100;
+        modalContent.style.transition = "none";
+        modalContent.style.transform = `translateX(-${currentMediaIndex * 100 - perc}%)`;
+      }
+    });
+    modalContentContainer.addEventListener('touchend', e => {
+      if (pinchActive) {
+        let currentItem = modalContent.children[currentMediaIndex].querySelector('img,video');
+        if (currentItem) {
+          currentItem.style.transform = "scale(1)";
+        }
+        pinchActive = false;
+      } else {
+        modalContent.style.transition = "";
+        if (Math.abs(dx) > (modalContentContainer.clientWidth * 0.3)) {
+          if (dx < 0) navigateModal(1);
+          else navigateModal(-1);
+        } else {
+          updateModalContent();
+        }
+      }
+      dx = 0;
+    });
+    document.getElementById('mediaModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('mediaModal')) closeModal();
+    });
+    document.addEventListener('keydown', e => {
+      if (document.getElementById('mediaModal').classList.contains('active')) {
+        if (e.key === 'Escape') closeModal();
+        if (e.key === 'ArrowLeft') navigateModal(-1);
+        if (e.key === 'ArrowRight') navigateModal(1);
+      }
+    });
+
+    // Função de download que salva a mídia no localStorage com a data em formato ISO
+    function downloadMedia(item) {
+      const key = 'downloadedMedia-' + currentUserId;
+      let downloaded = localStorage.getItem(key);
+      downloaded = downloaded ? JSON.parse(downloaded) : [];
+      if (!downloaded.find(it => it.id === item.id)) {
+        downloaded.push({
+          id: item.id,
+          url: item.mediaUrl, // Certifique-se de que a URL está presente
+          type: item.type,
+          timestamp: item.timestamp && item.timestamp !== "N/A" 
+                     ? new Date(item.timestamp).toISOString() 
+                     : "N/A"
+        });
+        localStorage.setItem(key, JSON.stringify(downloaded));
+        alert('Mídia salva localmente!');
+      } else {
+        alert('Mídia já está salva!');
+      }
+    }
+  </script>
+</body>
+</html>
