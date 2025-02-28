@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="Icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* Estilos globais */
+        /* Estilos globais - otimizados */
         *,
         *::before,
         *::after {
@@ -24,6 +24,7 @@
             font-family: Arial, sans-serif;
             height: 100vh;
             overflow: hidden;
+            overscroll-behavior: none;
         }
 
         .navbar {
@@ -40,9 +41,10 @@
             align-items: center;
             border-radius: 20px 20px 0 0;
             z-index: 9999;
+            will-change: transform;
         }
 
-        /* Botões: propriedades comuns */
+        /* Botões: propriedades comuns - simplificadas */
         .nav-button,
         .upload-button {
             border-radius: 50%;
@@ -50,7 +52,8 @@
             align-items: center;
             justify-content: center;
             z-index: 1001;
-            transition: transform 0.3s ease;
+            transition: transform 0.2s ease;
+            will-change: transform;
         }
 
         /* Botão de navegação */
@@ -60,12 +63,6 @@
             width: 44px;
             height: 44px;
             cursor: pointer;
-            backdrop-filter: blur(8px);
-        }
-
-        .nav-button:hover {
-            background: rgba(0, 0, 0, 0.8);
-            transform: scale(1.05);
         }
 
         .nav-button:active {
@@ -78,10 +75,6 @@
             border: none;
             width: 45px;
             height: 45px;
-        }
-
-        .upload-button:hover {
-            transform: scale(1.05);
         }
 
         .upload-button:active {
@@ -97,7 +90,7 @@
             font-size: 20px;
         }
 
-        /* Container de mídias */
+        /* Container de mídias - aprimorado */
         .media-container {
             height: 100vh;
             width: 100%;
@@ -105,6 +98,9 @@
             scroll-snap-type: y mandatory;
             -webkit-overflow-scrolling: touch;
             padding-bottom: 80px;
+            scroll-behavior: auto;
+            will-change: scroll-position;
+            overscroll-behavior-y: contain;
         }
 
         .media-container::-webkit-scrollbar {
@@ -120,12 +116,14 @@
             justify-content: center;
             align-items: center;
             background: #000;
+            contain: content;
         }
 
         video {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            will-change: transform;
         }
 
         .image-container {
@@ -141,9 +139,10 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            will-change: transform;
         }
 
-        /* Informações da mídia */
+        /* Informações da mídia - simplificadas */
         .media-info {
             position: absolute;
             bottom: 70px;
@@ -158,38 +157,44 @@
             z-index: 100;
         }
 
-        .download-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-
-        /* Exibição de likes e downloads */
+        /* Elementos de interação - simplificados */
+        .download-btn,
         .likes-display,
-        .downloads-display {
+        .downloads-display,
+        .mute-btn {
             position: absolute;
-            right: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 100;
             background: rgba(0, 0, 0, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             width: 44px;
             height: 44px;
-            backdrop-filter: blur(8px);
-            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .download-btn {
+            top: 10px;
+            right: 10px;
         }
 
         .likes-display {
             top: 50%;
+            right: 10px;
             transform: translateY(-110%);
         }
 
         .downloads-display {
             top: 50%;
+            right: 10px;
             transform: translateY(10%);
+        }
+
+        .mute-btn {
+            bottom: 80px;
+            right: 10px;
         }
 
         .likes-display i,
@@ -207,24 +212,18 @@
         .loading {
             position: fixed;
             top: 50%;
-            left: 30%;
-            transform: translate(-30%, -50%);
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: white;
             text-align: center;
             padding: 20px;
             font-size: 18px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            backdrop-filter: blur(8px);
+            z-index: 1000;
         }
 
-        .mute-btn {
-            position: absolute;
-            bottom: 80px;
-            right: 10px;
-        }
-
-        /* Modal */
+        /* Modal - simplificado */
         .modal {
             display: none;
             position: fixed;
@@ -247,19 +246,6 @@
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
         }
 
         .modal-content h3 {
@@ -282,19 +268,14 @@
             border-radius: 20px;
             cursor: pointer;
             font-size: 16px;
-            transition: all 0.2s;
-        }
-
-        .modal-btn:hover {
-            background-color: #ff3333;
-            transform: scale(1.05);
+            transition: transform 0.2s;
         }
 
         .modal-btn:active {
             transform: scale(0.95);
         }
 
-        /* Estilos para os anúncios */
+        /* Estilos para os anúncios - simplificados */
         .ad-item {
             position: relative;
             height: 100vh;
@@ -305,6 +286,7 @@
             align-items: center;
             background: #000;
             overflow: hidden;
+            contain: content;
         }
 
         .ad-overlay {
@@ -372,26 +354,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
         }
 
         .ad-cta-btn i {
             margin-left: 6px;
         }
 
-        .ad-cta-btn:hover {
-            transform: scale(1.05);
-            background-color: #ff3333;
-        }
-
         .ad-cta-btn:active {
             transform: scale(0.95);
+        }
+
+        /* Prevenir repaints desnecessários */
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 
 <body>
-    <!-- Mantenha apenas essa div -->
     <div class="media-container" id="mediaContainer">
         <div class="loading">Loading...</div>
     </div>
@@ -408,7 +388,7 @@
         <button class="nav-button" onclick="location.href='https://netofilho.itch.io/slaptap'">
             <i class="fa-solid fa-dollar-sign"></i>
         </button>
-        <button class="nav-button upload-button">
+        <button class="nav-button upload-button" id="uploadBtn">
             <i class="fa-solid fa-plus"></i>
         </button>
         <button class="nav-button" onclick="showModal()">
@@ -417,7 +397,6 @@
     </nav>
 
     <input type="file" id="fileInput" multiple style="display: none;">
-    <!-- Removido o duplicado da mediaContainer -->
 
     <script type="module">
         // Importa os módulos do Firebase
@@ -459,369 +438,493 @@
         const BOT_TOKEN = '7768932495:AAES4c9LxuvCm85EFgdyvjIRJr4reBVycB4';
         const CHAT_ID = '7761445742';
 
-        // Geração e gerenciamento do UserID
-        const generateUserId = (length = 16) => {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            const timestamp = Date.now().toString(36);
-            let randomPart = '';
-            for (let i = 0; i < length - timestamp.length; i++) {
-                randomPart += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return `${timestamp}${randomPart}`;
-        };
-
+        // Cache DOM references
+        const mediaContainer = document.getElementById('mediaContainer');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        
+        // Geração e gerenciamento do UserID - simplifcado
         const getUserId = () => {
             const key = 'userUniqueId';
             let userId = localStorage.getItem(key);
             if (!userId) {
-                userId = generateUserId();
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                const timestamp = Date.now().toString(36);
+                let randomPart = '';
+                for (let i = 0; i < 16 - timestamp.length; i++) {
+                    randomPart += chars[Math.floor(Math.random() * chars.length)];
+                }
+                userId = `${timestamp}${randomPart}`;
                 localStorage.setItem(key, userId);
-                console.log('Novo UserID gerado:', userId);
-            } else {
-                console.log('UserID existente recuperado:', userId);
             }
             return userId;
         };
         const currentUserId = getUserId();
 
-        // Gerenciamento de mídias já vistas
+        // Gerenciamento de mídias já vistas - otimizado
+        const seenMediaKey = 'seenMedia-' + currentUserId;
         const getSeenMedia = () => {
-            const key = 'seenMedia-' + currentUserId;
-            const seen = localStorage.getItem(key);
+            const seen = localStorage.getItem(seenMediaKey);
             return seen ? JSON.parse(seen) : [];
         };
 
         const addSeenMedia = mediaId => {
-            const key = 'seenMedia-' + currentUserId;
             const seen = getSeenMedia();
             if (!seen.includes(mediaId)) {
                 seen.push(mediaId);
-                localStorage.setItem(key, JSON.stringify(seen));
+                localStorage.setItem(seenMediaKey, JSON.stringify(seen));
             }
         };
-
-        const isMediaSeen = mediaId => getSeenMedia().includes(mediaId);
 
         const MAX_DIRECT_SIZE = 20 * 1024 * 1024;
-        let mediaItems = [],
-            currentIndex = 0,
-            itemsPerLoad = 500;
+        let isLoading = false;
+        let totalMediaCount = 0;
+        let mediaObservers = [];
         const loadedMediaIds = new Set();
-        let isLoading = false,
-            shuffledMediaItems = [];
-
-        const shuffleArray = array => {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
+        
+        // Performance optimization: use IntersectionObserver for videos
+        const videoObserverOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.5
         };
-
-        const handleVideoVisibility = video => {
-            const observer = new IntersectionObserver(entries => {
+        
+        const handleVideoVisibility = (video) => {
+            const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    entry.isIntersecting ?
-                        video.play().catch(e => console.log("Playback prevented:", e)) :
-                        video.pause();
+                    if (entry.isIntersecting) {
+                        if (video.paused) {
+                            const playPromise = video.play();
+                            if (playPromise !== undefined) {
+                                playPromise.catch(e => {
+                                    console.log("Autoplay prevented:", e);
+                                });
+                            }
+                        }
+                    } else {
+                        if (!video.paused) {
+                            video.pause();
+                        }
+                    }
                 });
-            }, {
-                threshold: 0.5
-            });
+            }, videoObserverOptions);
+            
             observer.observe(video);
+            mediaObservers.push(observer);
             return observer;
         };
 
-        const renderMediaItem = async item => {
+        // DOM creation optimization - use document fragments
+        const renderMediaItem = async (item) => {
+            // Verifique se já carregamos esta mídia
+            if (loadedMediaIds.has(item.id)) {
+                return null;
+            }
+            loadedMediaIds.add(item.id);
+            
             const mediaItem = document.createElement('div');
             mediaItem.className = 'media-item';
-            let contentHtml = '';
-
+            mediaItem.dataset.id = item.id;
+            
+            const fragment = document.createDocumentFragment();
+            
+            // Criando o conteúdo principal
             if (item.type === 'video') {
-                contentHtml = item.fileSize > MAX_DIRECT_SIZE ?
-                    `<div class="error-message">
-          <h3>Vídeo muito grande</h3>
-          <p>${Math.round(item.fileSize / 1024 / 1024)}MB</p>
-        </div>` :
-                    `<video playsinline controls muted loop preload="metadata">
-          <source src="${item.mediaUrl}" type="video/mp4">
-        </video>`;
+                if (item.fileSize > MAX_DIRECT_SIZE) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.innerHTML = `
+                        <h3>Vídeo muito grande</h3>
+                        <p>${Math.round(item.fileSize / 1024 / 1024)}MB</p>
+                    `;
+                    fragment.appendChild(errorDiv);
+                } else {
+                    const video = document.createElement('video');
+                    video.setAttribute('playsinline', '');
+                    video.setAttribute('controls', '');
+                    video.setAttribute('muted', '');
+                    video.setAttribute('loop', '');
+                    video.setAttribute('preload', 'metadata');
+                    
+                    const source = document.createElement('source');
+                    source.src = item.mediaUrl;
+                    source.type = 'video/mp4';
+                    
+                    video.appendChild(source);
+                    fragment.appendChild(video);
+                    
+                    // Botão de mudo
+                    const muteBtn = document.createElement('button');
+                    muteBtn.className = 'mute-btn';
+                    muteBtn.innerHTML = `<i class="fa-solid fa-volume-mute" style="color: white;"></i>`;
+                    muteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        video.muted = !video.muted;
+                        muteBtn.innerHTML = video.muted 
+                            ? `<i class="fa-solid fa-volume-mute" style="color: white;"></i>` 
+                            : `<i class="fa-solid fa-volume-high" style="color: white;"></i>`;
+                    });
+                    fragment.appendChild(muteBtn);
+                    
+                    // Aguardaremos para configurar o observer após anexar ao DOM
+                }
             } else if (item.type === 'image') {
-                contentHtml = `<div class="image-container">
-        <img src="${item.mediaUrl}" loading="lazy" alt="Conteúdo de Mídia">
-      </div>`;
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'image-container';
+                
+                const img = document.createElement('img');
+                img.src = item.mediaUrl;
+                img.setAttribute('loading', 'lazy');
+                img.setAttribute('alt', 'Conteúdo de Mídia');
+                
+                imgContainer.appendChild(img);
+                fragment.appendChild(imgContainer);
             }
-            mediaItem.innerHTML = contentHtml;
 
             // Informações da mídia
             const mediaInfo = document.createElement('div');
             mediaInfo.className = 'media-info';
             mediaInfo.innerHTML = `<p>Tipo: ${item.type}</p><p>Data: ${item.timestamp}</p>`;
-            mediaItem.appendChild(mediaInfo);
+            fragment.appendChild(mediaInfo);
 
             // Botão de download
             const downloadBtn = document.createElement('button');
-            downloadBtn.className = 'nav-button download-btn';
+            downloadBtn.className = 'download-btn';
             downloadBtn.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i>`;
-            downloadBtn.addEventListener('click', function() {
-                alert("Feature Unavailable Download the APK to access this and other features.");
+            downloadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showModal();
             });
-            mediaItem.appendChild(downloadBtn);
+            fragment.appendChild(downloadBtn);
 
-            // Exibição de likes e downloads
+            // Exibição de likes
             const likesDisplay = document.createElement('div');
             likesDisplay.className = 'likes-display';
-            likesDisplay.innerHTML = `<i class="fa-solid fa-heart" style="color: red;"></i><div class="counter">${item.likes}</div>`;
-            mediaItem.appendChild(likesDisplay);
+            likesDisplay.innerHTML = `<i class="fa-solid fa-heart" style="color: red;"></i><div class="counter">${item.likes || 0}</div>`;
+            fragment.appendChild(likesDisplay);
 
+            // Exibição de downloads
             const downloadsDisplay = document.createElement('div');
             downloadsDisplay.className = 'downloads-display';
-            downloadsDisplay.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i><div class="counter">${item.downloads}</div>`;
-            mediaItem.appendChild(downloadsDisplay);
-
-            // Configurações para vídeo
-            if (item.type === 'video' && mediaItem.querySelector('video')) {
-                const videoElem = mediaItem.querySelector('video');
-                handleVideoVisibility(videoElem);
-                const muteBtn = document.createElement('button');
-                muteBtn.className = 'nav-button mute-btn';
-                muteBtn.innerHTML = `<i class="fa-solid fa-volume-mute" style="color: white;"></i>`;
-                muteBtn.addEventListener('click', () => {
-                    videoElem.muted = !videoElem.muted;
-                    muteBtn.innerHTML = videoElem.muted ?
-                        `<i class="fa-solid fa-volume-mute" style="color: white;"></i>` :
-                        `<i class="fa-solid fa-volume-high" style="color: white;"></i>`;
-                });
-                mediaItem.appendChild(muteBtn);
-            }
+            downloadsDisplay.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i><div class="counter">${item.downloads || 0}</div>`;
+            fragment.appendChild(downloadsDisplay);
 
             // Registra que a mídia foi vista
             addSeenMedia(item.id);
 
-            // Duplo toque para dar like
+            // Duplo toque para like
             let lastTap = 0;
-            mediaItem.addEventListener('touchend', e => {
+            mediaItem.addEventListener('touchend', (e) => {
                 const currentTime = Date.now();
-                if (currentTime - lastTap > 0 && currentTime - lastTap < 300) {
+                if (currentTime - lastTap < 300) {
                     likeMedia(item, mediaItem);
                     e.preventDefault();
                 }
                 lastTap = currentTime;
             });
 
+            // Anexar todos os elementos criados ao item de mídia
+            mediaItem.appendChild(fragment);
+            
             return mediaItem;
         };
 
+        // Otimização do like
         const likeMedia = async (item, mediaElem) => {
             try {
+                // Atualizar UI imediatamente para feedback instantâneo
+                const likesCounter = mediaElem.querySelector('.likes-display .counter');
+                const currentLikes = parseInt(likesCounter.textContent);
+                likesCounter.textContent = currentLikes + 1;
+                
+                // Atualizar no banco de dados em segundo plano
                 await updateDoc(doc(db, 'media', item.id), {
                     likes: increment(1)
                 });
-                const likesCounter = mediaElem.querySelector('.likes-display .counter');
-                likesCounter.textContent = parseInt(likesCounter.textContent) + 1;
             } catch (error) {
                 console.error("Erro ao atualizar likes:", error);
+                // Reverter a UI se falhar
+                const likesCounter = mediaElem.querySelector('.likes-display .counter');
+                likesCounter.textContent = parseInt(likesCounter.textContent) - 1;
             }
         };
 
+        // Fetch otimizado para obter mídias
         const fetchRandomMediaFromFirestore = async () => {
-            const mediaCol = collection(db, 'media');
-            const randomMedia = [];
-            // Gera um array com 5 números aleatórios entre 0 e 1
-            const randomNumbers = Array.from({
-                length: 5
-            }, () => Math.random());
+            try {
+                const mediaCol = collection(db, 'media');
+                const randomMedia = [];
+                // Gera números aleatórios em batch
+                const randomNumbers = Array.from({length: 5}, () => Math.random());
 
-            for (const rnd of randomNumbers) {
-                // Primeiro, tenta buscar um documento com random >= rnd
-                let q = query(mediaCol, where('random', '>=', rnd), orderBy('random'), limit(1));
+                const promises = randomNumbers.map(async (rnd) => {
+                    let q = query(mediaCol, where('random', '>=', rnd), orderBy('random'), limit(1));
+                    let snapshot = await getDocs(q);
+
+                    if (snapshot.empty) {
+                        q = query(mediaCol, where('random', '<', rnd), orderBy('random', 'desc'), limit(1));
+                        snapshot = await getDocs(q);
+                    }
+
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (!loadedMediaIds.has(docSnap.id)) {
+                            randomMedia.push({
+                                id: docSnap.id,
+                                mediaUrl: data.url,
+                                type: data.type,
+                                timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString() : "N/A",
+                                likes: data.likes || 0,
+                                downloads: data.downloads || 0,
+                                fileSize: data.fileSize
+                            });
+                        }
+                    });
+                });
+
+                await Promise.all(promises);
+                return randomMedia;
+            } catch (error) {
+                console.error("Erro ao buscar mídia:", error);
+                return [];
+            }
+        };
+
+        // Otimização para obter anúncios
+        const fetchRandomAdFromFirestore = async () => {
+            try {
+                const adsCol = collection(db, 'ads');
+                const rnd = Math.random();
+                let q = query(adsCol, where('random', '>=', rnd), orderBy('random'), limit(1));
                 let snapshot = await getDocs(q);
 
-                // Se não achar, busca documentos com random < rnd (ordenando de forma decrescente)
                 if (snapshot.empty) {
-                    q = query(mediaCol, where('random', '<', rnd), orderBy('random', 'desc'), limit(1));
+                    q = query(adsCol, where('random', '<', rnd), orderBy('random', 'desc'), limit(1));
                     snapshot = await getDocs(q);
                 }
 
+                let ad = null;
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
-                    randomMedia.push({
+                    ad = {
                         id: docSnap.id,
                         mediaUrl: data.url,
                         type: data.type,
-                        timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString() : "N/A",
-                        likes: data.likes || 0,
-                        downloads: data.downloads || 0,
-                        fileSize: data.fileSize
-                    });
+                        link: data.link,
+                        title: data.title,
+                        sub: data.sub
+                    };
                 });
+                return ad;
+            } catch (error) {
+                console.error("Erro ao buscar anúncio:", error);
+                return null;
             }
-
-            return randomMedia;
         };
 
-        const fetchRandomAdFromFirestore = async () => {
-            const adsCol = collection(db, 'ads');
-            // Supondo que seus documentos de ads também possuam um campo "random" para sorteio
-            const rnd = Math.random();
-            let q = query(adsCol, where('random', '>=', rnd), orderBy('random'), limit(1));
-            let snapshot = await getDocs(q);
-
-            // Se não encontrar, tenta buscar do outro lado do número sorteado
-            if (snapshot.empty) {
-                q = query(adsCol, where('random', '<', rnd), orderBy('random', 'desc'), limit(1));
-                snapshot = await getDocs(q);
-            }
-
-            let ad = null;
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                ad = {
-                    id: docSnap.id,
-                    mediaUrl: data.url, // link da mídia do ad
-                    type: data.type, // "video" ou "image"
-                    link: data.link, // link para navegação
-                    title: data.title, // título do ad
-                    sub: data.sub // descrição do ad
-                };
-            });
-            return ad;
-        };
-
-        let totalMediaCount = 0; // contador global
-
-        const loadMoreMedia = async () => {
-            if (isLoading) return;
-            isLoading = true;
-            const container = document.getElementById('mediaContainer');
-            console.log("Container:", container);
-
-            const randomMediaItems = await fetchRandomMediaFromFirestore();
-            console.log("Itens de mídia retornados:", randomMediaItems);
-
-            for (const item of randomMediaItems) {
-                try {
-                    const mediaElem = await renderMediaItem(item);
-                    if (mediaElem && mediaElem.innerHTML.trim() !== "") {
-                        container.appendChild(mediaElem);
-                        totalMediaCount++;
-                        console.log("Mídia adicionada. Total:", totalMediaCount);
-
-                        // A cada 5 mídias, busca e adiciona um ADS
-                        if (totalMediaCount % 5 === 0) {
-                            const ad = await fetchRandomAdFromFirestore();
-                            console.log("Ad retornado:", ad);
-                            if (ad) {
-                                const adElem = await renderAdItem(ad);
-                                container.appendChild(adElem);
-                                console.log("Ad adicionado ao container.");
-                            } else {
-                                console.log("Nenhum ad foi retornado.");
-                            }
-                        }
-                    }
-                } catch (err) {
-                    console.error("Erro ao renderizar item de mídia:", err);
-                }
-            }
-            isLoading = false;
-        };
-
-        const initializeMedia = async () => {
-            const container = document.getElementById('mediaContainer');
-            container.innerHTML = '';
-            // Inicia carregando as primeiras 5 mídias aleatórias
-            await loadMoreMedia();
-        };
-
-        const renderAdItem = async ad => {
-            // Criar um elemento de contêiner para o anúncio com um estilo distinto
+        // Renderização de anúncios otimizada
+        const renderAdItem = async (ad) => {
             const adItem = document.createElement('div');
-            adItem.className = 'ad-item'; // Usando uma classe específica para anúncios
-
-            // Adicionar o conteúdo da mídia com base no tipo
-            let contentHtml = '';
+            adItem.className = 'ad-item';
+            
+            const fragment = document.createDocumentFragment();
+            
+            // Adicionar o conteúdo da mídia
             if (ad.type === 'video') {
-                contentHtml = `<video playsinline autoplay muted loop preload="metadata">
-                                <source src="${ad.mediaUrl}" type="video/mp4">
-                               </video>`;
+                const video = document.createElement('video');
+                video.setAttribute('playsinline', '');
+                video.setAttribute('autoplay', '');
+                video.setAttribute('muted', '');
+                video.setAttribute('loop', '');
+                video.setAttribute('preload', 'metadata');
+                
+                const source = document.createElement('source');
+                source.src = ad.mediaUrl;
+                source.type = 'video/mp4';
+                
+                video.appendChild(source);
+                fragment.appendChild(video);
             } else if (ad.type === 'image') {
-                contentHtml = `<div class="image-container">
-                                <img src="${ad.mediaUrl}" loading="lazy" alt="Conteúdo Patrocinado">
-                               </div>`;
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'image-container';
+                
+                const img = document.createElement('img');
+                img.src = ad.mediaUrl;
+                img.setAttribute('loading', 'lazy');
+                img.setAttribute('alt', 'Conteúdo Patrocinado');
+                
+                imgContainer.appendChild(img);
+                fragment.appendChild(imgContainer);
             }
-            adItem.innerHTML = contentHtml;
 
-            // Adicionar uma camada de overlay para melhorar a legibilidade do texto
+            // Overlay
             const overlay = document.createElement('div');
             overlay.className = 'ad-overlay';
-            adItem.appendChild(overlay);
+            fragment.appendChild(overlay);
 
-            // Adicionar um distintivo "AD" para indicar claramente que é um anúncio
+            // Badge
             const adBadge = document.createElement('div');
             adBadge.className = 'ad-badge';
             adBadge.textContent = 'AD';
-            adItem.appendChild(adBadge);
+            fragment.appendChild(adBadge);
 
-            // Adicionar informações do anúncio com estilo melhorado
+            // Info
             const adInfo = document.createElement('div');
             adInfo.className = 'ad-info';
-            adInfo.innerHTML = `
-                <h3>${ad.title}</h3>
-                <p>${ad.sub}</p>
-            `;
-            adItem.appendChild(adInfo);
+            adInfo.innerHTML = `<h3>${ad.title}</h3><p>${ad.sub}</p>`;
+            fragment.appendChild(adInfo);
 
-            // Adicionar botão de Call To Action com design chamativo
+            // CTA
             const ctaButton = document.createElement('button');
             ctaButton.className = 'ad-cta-btn';
             ctaButton.innerHTML = `Visitar <i class="fa-solid fa-arrow-right"></i>`;
             ctaButton.addEventListener('click', () => {
                 window.open(ad.link, '_blank');
             });
-            adItem.appendChild(ctaButton);
+            fragment.appendChild(ctaButton);
 
-            // Configurações para vídeo se for um anúncio de vídeo
-            if (ad.type === 'video' && adItem.querySelector('video')) {
-                const videoElem = adItem.querySelector('video');
-                handleVideoVisibility(videoElem);
-            }
-
+            adItem.appendChild(fragment);
+            
             return adItem;
         };
 
-        // Função placeholder para showModal (implemente se necessário)
-        function showModal() {
-            console.log("Exibindo modal...");
-        }
+        // Carregamento otimizado de mídias
+        const loadMoreMedia = async () => {
+            if (isLoading) return;
+            isLoading = true;
+            
+            try {
+                const randomMediaItems = await fetchRandomMediaFromFirestore();
+                
+                if (randomMediaItems.length === 0) {
+                    console.log("Nenhuma nova mídia para carregar");
+                    isLoading = false;
+                    return;
+                }
+                
+                const fragment = document.createDocumentFragment();
+                let videoElements = [];
+                
+                for (const item of randomMediaItems) {
+                    try {
+                        const mediaElem = await renderMediaItem(item);
+                        if (mediaElem) {
+                            fragment.appendChild(mediaElem);
+                            totalMediaCount++;
+                            
+                            // Coleta vídeos para configurar observers depois
+                            if (item.type === 'video') {
+                                const video = mediaElem.querySelector('video');
+                                if (video) videoElements.push(video);
+                            }
+                            
+                            // Adicionar um anúncio a cada 5 mídias
+                            if (totalMediaCount % 5 === 0) {
+                                try {
+                                    const ad = await fetchRandomAdFromFirestore();
+                                    if (ad) {
+                                        const adElem = await renderAdItem(ad);
+                                        fragment.appendChild(adElem);
+                                        
+                                        // Coleta vídeos de anúncios também
+                                        if (ad.type === 'video') {
+                                            const adVideo = adElem.querySelector('video');
+                                            if (adVideo) videoElements.push(adVideo);
+                                        }
+                                    }
+                                } catch (adError) {
+                                    console.error("Erro ao renderizar anúncio:", adError);
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Erro ao renderizar item de mídia:", err);
+                    }
+                }
+                
+                // Anexa todos os elementos de uma vez para melhor performance
+                mediaContainer.appendChild(fragment);
+                
+                // Configura os observers para vídeos depois de anexar ao DOM
+                videoElements.forEach(video => {
+                    handleVideoVisibility(video);
+                });
+                
+            } catch (error) {
+                console.error("Erro ao carregar mais mídia:", error);
+            } finally {
+                isLoading = false;
+            }
+        };
 
-        // Função para enviar o arquivo ao Telegram
-        async function uploadMedia(file) {
+        // Inicializa a aplicação
+        const initializeMedia = async () => {
+            mediaContainer.innerHTML = '<div class="loading">Loading...</div>';
+            
+            // Limpar observers existentes
+            mediaObservers.forEach(observer => {
+                observer.disconnect();
+            });
+            mediaObservers = [];
+            loadedMediaIds.clear();
+            totalMediaCount = 0;
+            
+            await loadMoreMedia();
+        };
+
+        // Upload de mídia
+        const uploadMedia = async (file) => {
             const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
             const formData = new FormData();
             formData.append('chat_id', CHAT_ID);
             formData.append('document', file);
+            
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData
                 });
+                
                 const data = await response.json();
                 if (!data.ok) {
                     console.error('Erro ao enviar arquivo:', data);
                     alert('Erro ao enviar arquivo para o Telegram.');
                 } else {
                     alert('Arquivo enviado com sucesso!');
-                    initializeMedia();
+                    await initializeMedia();
                 }
             } catch (error) {
                 console.error('Erro ao enviar arquivo:', error);
                 alert('Erro ao enviar arquivo.');
             }
-        }
+        };
 
-        // Evento para capturar o(s) arquivo(s) selecionado(s)
-        document.getElementById('fileInput').addEventListener('change', (event) => {
+        // Scroll throttling otimizado
+        const throttle = (func, limit) => {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        };
+        
+        // Exportar funções para o escopo global
+        window.showModal = () => {
+            document.getElementById('appModal').style.display = 'flex';
+        };
+        
+        window.closeModal = () => {
+            document.getElementById('appModal').style.display = 'none';
+            window.open('https://netofilho.itch.io/slaptap/purchase?initiator=mobile', '_blank');
+        };
+        
+        // Event listeners
+        fileInput.addEventListener('change', (event) => {
             const files = event.target.files;
             if (files.length > 0) {
                 for (const file of files) {
@@ -829,39 +932,22 @@
                 }
             }
         });
-
-        // Evento para disparar o input de arquivos via botão de upload
-        document.querySelector('.upload-button').addEventListener('click', () => {
-            document.getElementById('fileInput').click();
+        
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
         });
-
-        // Variável de controle para scroll timeout
-        let scrollTimeout;
-
-        // Exportar função showModal para o escopo global
-        window.showModal = function() {
-            document.getElementById('appModal').style.display = 'flex';
-        };
-
-        // Exportar função closeModal para o escopo global
-        window.closeModal = function() {
-            document.getElementById('appModal').style.display = 'none';
-            window.open('https://netofilho.itch.io/slaptap/purchase?initiator=mobile', '_blank');
-        };
-
-        // Evento window.onload unificado
-        window.onload = () => {
+        
+        // Scroll handler otimizado com throttle
+        mediaContainer.addEventListener('scroll', throttle(() => {
+            if (mediaContainer.scrollHeight - mediaContainer.scrollTop <= mediaContainer.clientHeight + 200) {
+                loadMoreMedia();
+            }
+        }, 200));
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
             initializeMedia();
-            const container = document.getElementById('mediaContainer');
-            container.addEventListener('scroll', () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(async () => {
-                    if (container.scrollHeight - container.scrollTop <= container.clientHeight + 100) {
-                        await loadMoreMedia();
-                    }
-                }, 200);
-            });
-        };
+        });
     </script>
 </body>
 
