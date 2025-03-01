@@ -7,7 +7,9 @@
     <title>Slaptap - Baixe Agora</title>
     <meta name="description" content="Slaptap - O novo aplicativo que está revolucionando o entretenimento adulto. Baixe agora e descubra uma nova experiência." />
     <link rel="icon" type="image/png" href="favicon.png">
-<script type='text/javascript' src='//pl25996797.effectiveratecpm.com/17/e5/0e/17e50e7cd3a2c78367c4df361de2c414.js'></script>
+    <script type='text/javascript' src='//pl25996797.effectiveratecpm.com/17/e5/0e/17e50e7cd3a2c78367c4df361de2c414.js'></script>
+    <meta name="theme-color" content="#000000">
+    <meta name="robots" content="index, follow">
     <style>
         /* Importando fonte moderna */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -308,7 +310,7 @@
             .menu-toggle {
                 display: block;
             }
-            
+
             .menu-toggle span {
                 display: block;
                 width: 30px;
@@ -318,7 +320,7 @@
                 border-radius: 3px;
                 transition: all 0.3s ease;
             }
-            
+
             .nav-links {
                 position: fixed;
                 top: 70px;
@@ -331,7 +333,7 @@
                 padding: 2rem;
                 transition: right 0.3s ease;
             }
-            
+
             .nav-links.active {
                 right: 0;
             }
@@ -362,7 +364,7 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        
+
         .lazy-load.loaded {
             opacity: 1;
         }
@@ -516,16 +518,16 @@
         document.addEventListener('DOMContentLoaded', function() {
             const menuToggle = document.getElementById('menuToggle');
             const navLinks = document.getElementById('navLinks');
-            
+
             if (menuToggle && navLinks) {
                 menuToggle.addEventListener('click', function() {
                     navLinks.classList.toggle('active');
                 });
             }
-            
+
             // Lazy loading para imagens
             const lazyImages = document.querySelectorAll('.lazy-load');
-            
+
             // Observador de interseção para carregar imagens quando visíveis
             if ('IntersectionObserver' in window) {
                 const imageObserver = new IntersectionObserver(function(entries, observer) {
@@ -537,7 +539,7 @@
                         }
                     });
                 });
-                
+
                 lazyImages.forEach(function(img) {
                     imageObserver.observe(img);
                 });
@@ -547,21 +549,21 @@
                     img.classList.add('loaded');
                 });
             }
-            
+
             // Otimização de scroll suave para links de navegação
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
+                anchor.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
+
                     const targetId = this.getAttribute('href');
                     const targetElement = document.querySelector(targetId);
-                    
+
                     if (targetElement) {
                         window.scrollTo({
                             top: targetElement.offsetTop - 80,
                             behavior: 'smooth'
                         });
-                        
+
                         // Fecha o menu mobile se estiver aberto
                         if (navLinks.classList.contains('active')) {
                             navLinks.classList.remove('active');
