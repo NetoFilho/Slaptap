@@ -24,9 +24,15 @@
       margin-top: 10px;
       font-size: 1rem;
     }
+    /* Container para o console (opcional) */
+    #console-container {
+      margin-top: 20px;
+    }
   </style>
   <!-- Carrega a biblioteca do gapi -->
   <script src="https://apis.google.com/js/api.js"></script>
+  <!-- Importa o módulo do Android Console -->
+  <script type="module" src="console.js"></script>
 </head>
 <body>
   <h2>Integração Google Photos com Firestore</h2>
@@ -36,14 +42,18 @@
   <p id="status"></p>
   <div id="log" class="log"></div>
 
-  <!-- Firebase Modular SDK -->
+  <!-- Área para o Android Console -->
+  <div id="console-container">
+    <android-console></android-console>
+  </div>
+
+  <!-- Código do Firebase e Google API -->
   <script type="module">
-    // Importa módulos do Firebase
+    // Código já existente para integração com Google Photos e Firestore
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    // Configuração do Firebase – substitua pelos seus dados
-        const firebaseConfig = {
+    const firebaseConfig = {
       apiKey: "AIzaSyArM-m7dvRhtLzSZWQegitYm3X-3QCdHf8",
       authDomain: "slaptap-70c69.firebaseapp.com",
       projectId: "slaptap-70c69",
@@ -53,28 +63,24 @@
       measurementId: "G-CMKKTDN0DE"
     };
 
-    // Inicializa Firebase e Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     const logDiv = document.getElementById("log");
     const statusP = document.getElementById("status");
 
-    // Array para armazenar os links dos arquivos listados
     const uploadedFiles = [];
-
     let gapiInited = false;
     let accessToken = '';
 
-    // Carrega e inicializa a biblioteca cliente do Google API
     function gapiLoaded() {
       gapi.load('client:auth2', initializeGapiClient);
     }
 
     async function initializeGapiClient() {
       await gapi.client.init({
-        apiKey: 'slaptap-70c69.firebaseapp.com',  // Sua API Key para Google API
-        clientId: '314393069162-l7q1mtsfd8s2j97r2765i2s0rmgtb51k.apps.googleusercontent.com',      // Seu Client ID obtido no Google Cloud Console
+        apiKey: 'slaptap-70c69.firebaseapp.com',
+        clientId: '314393069162-l7q1mtsfd8s2j97r2765i2s0rmgtb51k.apps.googleusercontent.com',
         scope: 'https://www.googleapis.com/auth/photoslibrary.readonly',
         discoveryDocs: ["https://photoslibrary.googleapis.com/$discovery/rest?version=v1"]
       });
@@ -83,7 +89,6 @@
       statusP.innerText = "Google API inicializado.";
     }
 
-    // Função para fazer login com o Google
     async function handleLogin() {
       if (!gapiInited) {
         statusP.innerText = "Google API não inicializado ainda.";
@@ -99,14 +104,12 @@
       }
     }
 
-    // Função para listar fotos de um álbum específico
     async function listPhotos() {
       statusP.innerText = "Buscando fotos do Google Photos...";
-      // Substitua 'ALBUM_ID' pelo ID do álbum desejado
       const albumId = 'AF1QipPeLrdk0Tk9TM3iQTcMIrjNQedC8MJuH4KfyG7L';
       const response = await gapi.client.photoslibrary.mediaItems.search({
         albumId: albumId,
-        pageSize: 50  // ajuste conforme necessário
+        pageSize: 50
       });
       const mediaItems = response.result.mediaItems;
       if (mediaItems && mediaItems.length > 0) {
@@ -114,7 +117,6 @@
         mediaItems.forEach(item => {
           const link = item.baseUrl;
           logDiv.innerHTML += `Foto: <a href="${link}" target="_blank">${link}</a><br>`;
-          // Armazena os links para envio posterior ao Firestore
           uploadedFiles.push({
             url: link,
             type: item.mimeType.startsWith("image") ? "image" : "video"
@@ -127,7 +129,6 @@
       }
     }
 
-    // Função para enviar os links para o Firestore
     async function sendToFirestore() {
       if (uploadedFiles.length === 0) {
         alert("Nenhuma foto listada para enviar!");
@@ -155,8 +156,6 @@
     document.getElementById("loginBtn").addEventListener("click", handleLogin);
     document.getElementById("listPhotosBtn").addEventListener("click", listPhotos);
     document.getElementById("firestoreBtn").addEventListener("click", sendToFirestore);
-
-    // Carrega a biblioteca do gapi assim que a página é carregada
     window.addEventListener("load", gapiLoaded);
   </script>
 </body>
