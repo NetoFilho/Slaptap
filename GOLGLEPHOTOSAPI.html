@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Integração Google Photos com Firestore</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f2f2f2;
+    }
+    h2 {
+      color: #333;
+    }
+    .log {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    button {
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+  </style>
+  <!-- Carrega a biblioteca do gapi -->
+  <script src="https://apis.google.com/js/api.js"></script>
+</head>
+<body>
+  <h2>Integração Google Photos com Firestore</h2>
+  <button id="loginBtn">Login com Google</button>
+  <button id="listPhotosBtn" disabled>Listar Fotos do Google Photos</button>
+  <button id="firestoreBtn" disabled>Enviar Links para Firestore</button>
+  <p id="status"></p>
+  <div id="log" class="log"></div>
+
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    // Importa módulos do Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // Configuração do Firebase – substitua pelos seus dados
+        const firebaseConfig = {
+      apiKey: "AIzaSyArM-m7dvRhtLzSZWQegitYm3X-3QCdHf8",
+      authDomain: "slaptap-70c69.firebaseapp.com",
+      projectId: "slaptap-70c69",
+      storageBucket: "slaptap-70c69.firebasestorage.app",
+      messagingSenderId: "314393069162",
+      appId: "1:314393069162:web:c2234e975c0491bc2bac13",
+      measurementId: "G-CMKKTDN0DE"
+    };
+
+    // Inicializa Firebase e Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const logDiv = document.getElementById("log");
+    const statusP = document.getElementById("status");
+
+    // Array para armazenar os links dos arquivos listados
+    const uploadedFiles = [];
+
+    let gapiInited = false;
+    let accessToken = '';
+
+    // Carrega e inicializa a biblioteca cliente do Google API
+    function gapiLoaded() {
+      gapi.load('client:auth2', initializeGapiClient);
+    }
+
+    async function initializeGapiClient() {
+      await gapi.client.init({
+        apiKey: 'slaptap-70c69.firebaseapp.com',  // Sua API Key para Google API
+        clientId: '314393069162-l7q1mtsfd8s2j97r2765i2s0rmgtb51k.apps.googleusercontent.com',      // Seu Client ID obtido no Google Cloud Console
+        scope: 'https://www.googleapis.com/auth/photoslibrary.readonly',
+        discoveryDocs: ["https://photoslibrary.googleapis.com/$discovery/rest?version=v1"]
+      });
+      gapiInited = true;
+      document.getElementById("loginBtn").disabled = false;
+      statusP.innerText = "Google API inicializado.";
+    }
+
+    // Função para fazer login com o Google
+    async function handleLogin() {
+      if (!gapiInited) {
+        statusP.innerText = "Google API não inicializado ainda.";
+        return;
+      }
+      try {
+        await gapi.auth2.getAuthInstance().signIn();
+        accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+        statusP.innerText = "Usuário autenticado!";
+        document.getElementById("listPhotosBtn").disabled = false;
+      } catch (error) {
+        statusP.innerText = "Erro na autenticação: " + error.message;
+      }
+    }
+
+    // Função para listar fotos de um álbum específico
+    async function listPhotos() {
+      statusP.innerText = "Buscando fotos do Google Photos...";
+      // Substitua 'ALBUM_ID' pelo ID do álbum desejado
+      const albumId = 'AF1QipPeLrdk0Tk9TM3iQTcMIrjNQedC8MJuH4KfyG7L';
+      const response = await gapi.client.photoslibrary.mediaItems.search({
+        albumId: albumId,
+        pageSize: 50  // ajuste conforme necessário
+      });
+      const mediaItems = response.result.mediaItems;
+      if (mediaItems && mediaItems.length > 0) {
+        logDiv.innerHTML = "";
+        mediaItems.forEach(item => {
+          const link = item.baseUrl;
+          logDiv.innerHTML += `Foto: <a href="${link}" target="_blank">${link}</a><br>`;
+          // Armazena os links para envio posterior ao Firestore
+          uploadedFiles.push({
+            url: link,
+            type: item.mimeType.startsWith("image") ? "image" : "video"
+          });
+        });
+        statusP.innerText = "Fotos listadas.";
+        document.getElementById("firestoreBtn").disabled = false;
+      } else {
+        statusP.innerText = "Nenhuma foto encontrada.";
+      }
+    }
+
+    // Função para enviar os links para o Firestore
+    async function sendToFirestore() {
+      if (uploadedFiles.length === 0) {
+        alert("Nenhuma foto listada para enviar!");
+        return;
+      }
+      statusP.innerText = "Enviando links para o Firestore...";
+      for (const fileData of uploadedFiles) {
+        try {
+          const randomValue = Math.random().toFixed(10);
+          await addDoc(collection(db, "media"), {
+            likes: 0,
+            downloads: 0,
+            type: fileData.type,
+            url: fileData.url,
+            random: Number(randomValue)
+          });
+          logDiv.innerHTML += `Documento criado para ${fileData.url}<br>`;
+        } catch (error) {
+          logDiv.innerHTML += `Erro ao salvar no Firestore para ${fileData.url}: ${error.message}<br>`;
+        }
+      }
+      statusP.innerText = "Todos os links foram enviados para o Firestore!";
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", handleLogin);
+    document.getElementById("listPhotosBtn").addEventListener("click", listPhotos);
+    document.getElementById("firestoreBtn").addEventListener("click", sendToFirestore);
+
+    // Carrega a biblioteca do gapi assim que a página é carregada
+    window.addEventListener("load", gapiLoaded);
+  </script>
+</body>
+</html>
