@@ -437,16 +437,10 @@
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
-        // Dados do bot do Telegram
-        const BOT_TOKEN = '7768932495:AAES4c9LxuvCm85EFgdyvjIRJr4reBVycB4';
-        const CHAT_ID = '7761445742';
-
-        // Cache DOM references
+        // Cache DOM reference
         const mediaContainer = document.getElementById('mediaContainer');
-        const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.getElementById('uploadBtn');
 
-        // Geração e gerenciamento do UserID - simplifcado
+        // Geração e gerenciamento do UserID - simplificado
         const getUserId = () => {
             const key = 'userUniqueId';
             let userId = localStorage.getItem(key);
@@ -508,7 +502,7 @@
         let mediaObservers = [];
         const loadedMediaIds = new Set();
 
-        // Performance optimization: use IntersectionObserver for videos
+        // Otimização de performance: IntersectionObserver para vídeos
         const videoObserverOptions = {
             root: null,
             rootMargin: '0px',
@@ -540,9 +534,8 @@
             return observer;
         };
 
-        // DOM creation optimization - use document fragments
+        // Criação otimizada de elementos de mídia
         const renderMediaItem = async (item) => {
-            // Verifique se já carregamos esta mídia
             if (loadedMediaIds.has(item.id)) {
                 return null;
             }
@@ -554,15 +547,14 @@
 
             const fragment = document.createDocumentFragment();
 
-            // Criando o conteúdo principal
             if (item.type === 'video') {
                 if (item.fileSize > MAX_DIRECT_SIZE) {
                     const errorDiv = document.createElement('div');
                     errorDiv.className = 'error-message';
                     errorDiv.innerHTML = `
-                        <h3>Vídeo muito grande</h3>
-                        <p>${Math.round(item.fileSize / 1024 / 1024)}MB</p>
-                    `;
+                  <h3>Vídeo muito grande</h3>
+                  <p>${Math.round(item.fileSize / 1024 / 1024)}MB</p>
+              `;
                     fragment.appendChild(errorDiv);
                 } else {
                     const video = document.createElement('video');
@@ -579,7 +571,6 @@
                     video.appendChild(source);
                     fragment.appendChild(video);
 
-                    // Botão de mudo
                     const muteBtn = document.createElement('button');
                     muteBtn.className = 'mute-btn';
                     muteBtn.innerHTML = `<i class="fa-solid fa-volume-mute" style="color: white;"></i>`;
@@ -591,8 +582,6 @@
                             `<i class="fa-solid fa-volume-high" style="color: white;"></i>`;
                     });
                     fragment.appendChild(muteBtn);
-
-                    // Aguardaremos para configurar o observer após anexar ao DOM
                 }
             } else if (item.type === 'image') {
                 const imgContainer = document.createElement('div');
@@ -607,38 +596,32 @@
                 fragment.appendChild(imgContainer);
             }
 
-            // Informações da mídia
             const mediaInfo = document.createElement('div');
             mediaInfo.className = 'media-info';
             mediaInfo.innerHTML = `<p>Tipo: ${item.type}</p><p>Data: ${item.timestamp}</p>`;
             fragment.appendChild(mediaInfo);
 
-            // Botão de download
             const downloadBtn = document.createElement('button');
             downloadBtn.className = 'download-btn';
             downloadBtn.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i>`;
             downloadBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Evita que eventos de clique em outros elementos sejam acionados
+                e.stopPropagation();
                 downloadMedia(item, mediaItem);
             });
             fragment.appendChild(downloadBtn);
 
-            // Exibição de likes
             const likesDisplay = document.createElement('div');
             likesDisplay.className = 'likes-display';
             likesDisplay.innerHTML = `<i class="fa-solid fa-heart" style="color: red;"></i><div class="counter">${item.likes || 0}</div>`;
             fragment.appendChild(likesDisplay);
 
-            // Exibição de downloads
             const downloadsDisplay = document.createElement('div');
             downloadsDisplay.className = 'downloads-display';
             downloadsDisplay.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i><div class="counter">${item.downloads || 0}</div>`;
             fragment.appendChild(downloadsDisplay);
 
-            // Registra que a mídia foi vista
             addSeenMedia(item.id);
 
-            // Duplo toque para like
             let lastTap = 0;
             mediaItem.addEventListener('touchend', (e) => {
                 const currentTime = Date.now();
@@ -649,7 +632,6 @@
                 lastTap = currentTime;
             });
 
-            // Anexar todos os elementos criados ao item de mídia
             mediaItem.appendChild(fragment);
 
             return mediaItem;
@@ -658,29 +640,25 @@
         // Otimização do like
         const likeMedia = async (item, mediaElem) => {
             try {
-                // Atualizar UI imediatamente para feedback instantâneo
                 const likesCounter = mediaElem.querySelector('.likes-display .counter');
                 const currentLikes = parseInt(likesCounter.textContent);
                 likesCounter.textContent = currentLikes + 1;
 
-                // Atualizar no banco de dados em segundo plano
                 await updateDoc(doc(db, 'media', item.id), {
                     likes: increment(1)
                 });
             } catch (error) {
                 console.error("Erro ao atualizar likes:", error);
-                // Reverter a UI se falhar
                 const likesCounter = mediaElem.querySelector('.likes-display .counter');
                 likesCounter.textContent = parseInt(likesCounter.textContent) - 1;
             }
         };
 
-        // Fetch otimizado para obter mídias
+        // Busca otimizada para obter mídias
         const fetchRandomMediaFromFirestore = async () => {
             try {
                 const mediaCol = collection(db, 'media');
                 const randomMedia = [];
-                // Gera números aleatórios em batch
                 const randomNumbers = Array.from({
                     length: 5
                 }, () => Math.random());
@@ -718,7 +696,7 @@
             }
         };
 
-        // Otimização para obter anúncios
+        // Busca otimizada para obter anúncios
         const fetchRandomAdFromFirestore = async () => {
             try {
                 const adsCol = collection(db, 'ads');
@@ -750,14 +728,13 @@
             }
         };
 
-        // Renderização de anúncios otimizada
+        // Renderização otimizada de anúncios
         const renderAdItem = async (ad) => {
             const adItem = document.createElement('div');
             adItem.className = 'ad-item';
 
             const fragment = document.createDocumentFragment();
 
-            // Adicionar o conteúdo da mídia
             if (ad.type === 'video') {
                 const video = document.createElement('video');
                 video.setAttribute('playsinline', '');
@@ -785,24 +762,20 @@
                 fragment.appendChild(imgContainer);
             }
 
-            // Overlay
             const overlay = document.createElement('div');
             overlay.className = 'ad-overlay';
             fragment.appendChild(overlay);
 
-            // Badge
             const adBadge = document.createElement('div');
             adBadge.className = 'ad-badge';
             adBadge.textContent = 'AD';
             fragment.appendChild(adBadge);
 
-            // Info
             const adInfo = document.createElement('div');
             adInfo.className = 'ad-info';
             adInfo.innerHTML = `<h3>${ad.title}</h3><p>${ad.sub}</p>`;
             fragment.appendChild(adInfo);
 
-            // CTA
             const ctaButton = document.createElement('button');
             ctaButton.className = 'ad-cta-btn';
             ctaButton.innerHTML = `Visitar <i class="fa-solid fa-arrow-right"></i>`;
@@ -840,13 +813,11 @@
                             fragment.appendChild(mediaElem);
                             totalMediaCount++;
 
-                            // Coleta vídeos para configurar observers depois
                             if (item.type === 'video') {
                                 const video = mediaElem.querySelector('video');
                                 if (video) videoElements.push(video);
                             }
 
-                            // Adicionar um anúncio a cada 5 mídias
                             if (totalMediaCount % 5 === 0) {
                                 try {
                                     const ad = await fetchRandomAdFromFirestore();
@@ -854,7 +825,6 @@
                                         const adElem = await renderAdItem(ad);
                                         fragment.appendChild(adElem);
 
-                                        // Coleta vídeos de anúncios também
                                         if (ad.type === 'video') {
                                             const adVideo = adElem.querySelector('video');
                                             if (adVideo) videoElements.push(adVideo);
@@ -870,10 +840,8 @@
                     }
                 }
 
-                // Anexa todos os elementos de uma vez para melhor performance
                 mediaContainer.appendChild(fragment);
 
-                // Configura os observers para vídeos depois de anexar ao DOM
                 videoElements.forEach(video => {
                     handleVideoVisibility(video);
                 });
@@ -889,7 +857,6 @@
         const initializeMedia = async () => {
             mediaContainer.innerHTML = '<div class="loading">Loading...</div>';
 
-            // Limpar observers existentes
             mediaObservers.forEach(observer => {
                 observer.disconnect();
             });
@@ -900,34 +867,7 @@
             await loadMoreMedia();
         };
 
-        // Upload de mídia
-        const uploadMedia = async (file) => {
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
-            const formData = new FormData();
-            formData.append('chat_id', CHAT_ID);
-            formData.append('document', file);
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                if (!data.ok) {
-                    console.error('Erro ao enviar arquivo:', data);
-                    alert('Erro ao enviar arquivo para o Telegram.');
-                } else {
-                    alert('Arquivo enviado com sucesso!');
-                    await initializeMedia();
-                }
-            } catch (error) {
-                console.error('Erro ao enviar arquivo:', error);
-                alert('Erro ao enviar arquivo.');
-            }
-        };
-
-        // Scroll throttling otimizado
+        // Função de throttle para otimização do scroll
         const throttle = (func, limit) => {
             let inThrottle;
             return function() {
@@ -941,28 +881,14 @@
             };
         };
 
-        // Event listeners
-        fileInput.addEventListener('change', (event) => {
-            const files = event.target.files;
-            if (files.length > 0) {
-                for (const file of files) {
-                    uploadMedia(file);
-                }
-            }
-        });
-
-        uploadBtn.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        // Scroll handler otimizado com throttle
+        // Handler de scroll otimizado
         mediaContainer.addEventListener('scroll', throttle(() => {
             if (mediaContainer.scrollHeight - mediaContainer.scrollTop <= mediaContainer.clientHeight + 200) {
                 loadMoreMedia();
             }
         }, 200));
 
-        // Inicialização
+        // Inicialização da aplicação
         document.addEventListener('DOMContentLoaded', () => {
             initializeMedia();
         });

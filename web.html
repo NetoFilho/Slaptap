@@ -394,579 +394,493 @@
         <button class="nav-button upload-button" id="uploadBtn">
             <i class="fa-solid fa-plus"></i>
         </button>
-        <button class="nav-button" onclick="location.href='media.html'">
+        <button class="nav-button" onclick="showModal()">
             <i class="fa-solid fa-images"></i>
         </button>
     </nav>
 
     <input type="file" id="fileInput" multiple style="display: none;">
 
-    <script type="module">
-        // Importa os módulos do Firebase
-        import {
-            initializeApp
-        } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import {
-            getAnalytics
-        } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
-        import {
-            getFirestore,
-            collection,
-            query,
-            orderBy,
-            limit,
-            getDocs,
-            where,
-            doc,
-            updateDoc,
-            increment
-        } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-
-        // Configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyArM-m7dvRhtLzSZWQegitYm3X-3QCdHf8",
-            authDomain: "slaptap-70c69.firebaseapp.com",
-            projectId: "slaptap-70c69",
-            storageBucket: "slaptap-70c69.firebasestorage.app",
-            messagingSenderId: "314393069162",
-            appId: "1:314393069162:web:c2234e975c0491bc2bac13",
-            measurementId: "G-CMKKTDN0DE"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getFirestore(app);
-
-        // Dados do bot do Telegram
-        const BOT_TOKEN = '7768932495:AAES4c9LxuvCm85EFgdyvjIRJr4reBVycB4';
-        const CHAT_ID = '7761445742';
-
-        // Cache DOM references
-        const mediaContainer = document.getElementById('mediaContainer');
-        const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-
-        // Geração e gerenciamento do UserID - simplifcado
-        const getUserId = () => {
-            const key = 'userUniqueId';
-            let userId = localStorage.getItem(key);
-            if (!userId) {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                const timestamp = Date.now().toString(36);
-                let randomPart = '';
-                for (let i = 0; i < 16 - timestamp.length; i++) {
-                    randomPart += chars[Math.floor(Math.random() * chars.length)];
-                }
-                userId = `${timestamp}${randomPart}`;
-                localStorage.setItem(key, userId);
-            }
-            return userId;
-        };
-        const currentUserId = getUserId();
-
-        // Gerenciamento de mídias já vistas - otimizado
-        const seenMediaKey = 'seenMedia-' + currentUserId;
-        const getSeenMedia = () => {
-            const seen = localStorage.getItem(seenMediaKey);
-            return seen ? JSON.parse(seen) : [];
-        };
-
-        const addSeenMedia = mediaId => {
-            const seen = getSeenMedia();
-            if (!seen.includes(mediaId)) {
-                seen.push(mediaId);
-                localStorage.setItem(seenMediaKey, JSON.stringify(seen));
-            }
-        };
-
-        // Função de "download": salva informações em localStorage
-        const downloadMedia = (item, mediaElem) => {
-            const key = 'downloadedMedia-' + currentUserId;
-            let downloaded = JSON.parse(localStorage.getItem(key)) || [];
-            if (!downloaded.find(it => it.id === item.id)) {
-                downloaded.push({
-                    id: item.id,
-                    url: item.mediaUrl,
-                    type: item.type,
-                    timestamp: item.timestamp
-                });
-                localStorage.setItem(key, JSON.stringify(downloaded));
-                updateDoc(doc(db, 'media', item.id), {
-                    downloads: increment(1)
-                }).catch(error => console.error("Erro ao atualizar downloads:", error));
-                const downloadsCounter = mediaElem.querySelector('.downloads-display .counter');
-                downloadsCounter.textContent = parseInt(downloadsCounter.textContent) + 1;
-                alert('Mídia salva localmente!');
-            } else {
-                alert('Mídia já está salva!');
-            }
-        };
-
-        const MAX_DIRECT_SIZE = 20 * 1024 * 1024;
-        let isLoading = false;
-        let totalMediaCount = 0;
-        let mediaObservers = [];
-        const loadedMediaIds = new Set();
-
-        // Performance optimization: use IntersectionObserver for videos
-        const videoObserverOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.5
-        };
-
-        const handleVideoVisibility = (video) => {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        if (video.paused) {
-                            const playPromise = video.play();
-                            if (playPromise !== undefined) {
-                                playPromise.catch(e => {
-                                    console.log("Autoplay prevented:", e);
-                                });
-                            }
-                        }
-                    } else {
-                        if (!video.paused) {
-                            video.pause();
-                        }
-                    }
-                });
-            }, videoObserverOptions);
-
-            observer.observe(video);
-            mediaObservers.push(observer);
-            return observer;
-        };
-
-        // DOM creation optimization - use document fragments
-        const renderMediaItem = async (item) => {
-            // Verifique se já carregamos esta mídia
-            if (loadedMediaIds.has(item.id)) {
-                return null;
-            }
-            loadedMediaIds.add(item.id);
-
-            const mediaItem = document.createElement('div');
-            mediaItem.className = 'media-item';
-            mediaItem.dataset.id = item.id;
-
-            const fragment = document.createDocumentFragment();
-
-            // Criando o conteúdo principal
-            if (item.type === 'video') {
-                if (item.fileSize > MAX_DIRECT_SIZE) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error-message';
-                    errorDiv.innerHTML = `
-                        <h3>Vídeo muito grande</h3>
-                        <p>${Math.round(item.fileSize / 1024 / 1024)}MB</p>
-                    `;
-                    fragment.appendChild(errorDiv);
-                } else {
-                    const video = document.createElement('video');
-                    video.setAttribute('playsinline', '');
-                    video.setAttribute('controls', '');
-                    video.setAttribute('muted', '');
-                    video.setAttribute('loop', '');
-                    video.setAttribute('preload', 'metadata');
-
-                    const source = document.createElement('source');
-                    source.src = item.mediaUrl;
-                    source.type = 'video/mp4';
-
-                    video.appendChild(source);
-                    fragment.appendChild(video);
-
-                    // Botão de mudo
-                    const muteBtn = document.createElement('button');
-                    muteBtn.className = 'mute-btn';
-                    muteBtn.innerHTML = `<i class="fa-solid fa-volume-mute" style="color: white;"></i>`;
-                    muteBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        video.muted = !video.muted;
-                        muteBtn.innerHTML = video.muted ?
-                            `<i class="fa-solid fa-volume-mute" style="color: white;"></i>` :
-                            `<i class="fa-solid fa-volume-high" style="color: white;"></i>`;
-                    });
-                    fragment.appendChild(muteBtn);
-
-                    // Aguardaremos para configurar o observer após anexar ao DOM
-                }
-            } else if (item.type === 'image') {
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'image-container';
-
-                const img = document.createElement('img');
-                img.src = item.mediaUrl;
-                img.setAttribute('loading', 'lazy');
-                img.setAttribute('alt', 'Conteúdo de Mídia');
-
-                imgContainer.appendChild(img);
-                fragment.appendChild(imgContainer);
-            }
-
-            // Informações da mídia
-            const mediaInfo = document.createElement('div');
-            mediaInfo.className = 'media-info';
-            mediaInfo.innerHTML = `<p>Tipo: ${item.type}</p><p>Data: ${item.timestamp}</p>`;
-            fragment.appendChild(mediaInfo);
-
-            // Botão de download
-            const downloadBtn = document.createElement('button');
-            downloadBtn.className = 'download-btn';
-            downloadBtn.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i>`;
-            downloadBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Evita que eventos de clique em outros elementos sejam acionados
-                downloadMedia(item, mediaItem);
-            });
-            fragment.appendChild(downloadBtn);
-
-            // Exibição de likes
-            const likesDisplay = document.createElement('div');
-            likesDisplay.className = 'likes-display';
-            likesDisplay.innerHTML = `<i class="fa-solid fa-heart" style="color: red;"></i><div class="counter">${item.likes || 0}</div>`;
-            fragment.appendChild(likesDisplay);
-
-            // Exibição de downloads
-            const downloadsDisplay = document.createElement('div');
-            downloadsDisplay.className = 'downloads-display';
-            downloadsDisplay.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i><div class="counter">${item.downloads || 0}</div>`;
-            fragment.appendChild(downloadsDisplay);
-
-            // Registra que a mídia foi vista
-            addSeenMedia(item.id);
-
-            // Duplo toque para like
-            let lastTap = 0;
-            mediaItem.addEventListener('touchend', (e) => {
-                const currentTime = Date.now();
-                if (currentTime - lastTap < 300) {
-                    likeMedia(item, mediaItem);
-                    e.preventDefault();
-                }
-                lastTap = currentTime;
-            });
-
-            // Anexar todos os elementos criados ao item de mídia
-            mediaItem.appendChild(fragment);
-
-            return mediaItem;
-        };
-
-        // Otimização do like
-        const likeMedia = async (item, mediaElem) => {
-            try {
-                // Atualizar UI imediatamente para feedback instantâneo
-                const likesCounter = mediaElem.querySelector('.likes-display .counter');
-                const currentLikes = parseInt(likesCounter.textContent);
-                likesCounter.textContent = currentLikes + 1;
-
-                // Atualizar no banco de dados em segundo plano
-                await updateDoc(doc(db, 'media', item.id), {
-                    likes: increment(1)
-                });
-            } catch (error) {
-                console.error("Erro ao atualizar likes:", error);
-                // Reverter a UI se falhar
-                const likesCounter = mediaElem.querySelector('.likes-display .counter');
-                likesCounter.textContent = parseInt(likesCounter.textContent) - 1;
-            }
-        };
-
-        // Fetch otimizado para obter mídias
-        const fetchRandomMediaFromFirestore = async () => {
-            try {
-                const mediaCol = collection(db, 'media');
-                const randomMedia = [];
-                // Gera números aleatórios em batch
-                const randomNumbers = Array.from({
-                    length: 5
-                }, () => Math.random());
-
-                const promises = randomNumbers.map(async (rnd) => {
-                    let q = query(mediaCol, where('random', '>=', rnd), orderBy('random'), limit(1));
-                    let snapshot = await getDocs(q);
-
-                    if (snapshot.empty) {
-                        q = query(mediaCol, where('random', '<', rnd), orderBy('random', 'desc'), limit(1));
-                        snapshot = await getDocs(q);
-                    }
-
-                    snapshot.forEach(docSnap => {
-                        const data = docSnap.data();
-                        if (!loadedMediaIds.has(docSnap.id)) {
-                            randomMedia.push({
-                                id: docSnap.id,
-                                mediaUrl: data.url,
-                                type: data.type,
-                                timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString() : "N/A",
-                                likes: data.likes || 0,
-                                downloads: data.downloads || 0,
-                                fileSize: data.fileSize
-                            });
-                        }
-                    });
-                });
-
-                await Promise.all(promises);
-                return randomMedia;
-            } catch (error) {
-                console.error("Erro ao buscar mídia:", error);
-                return [];
-            }
-        };
-
-        // Otimização para obter anúncios
-        const fetchRandomAdFromFirestore = async () => {
-            try {
-                const adsCol = collection(db, 'ads');
-                const rnd = Math.random();
-                let q = query(adsCol, where('random', '>=', rnd), orderBy('random'), limit(1));
-                let snapshot = await getDocs(q);
-
-                if (snapshot.empty) {
-                    q = query(adsCol, where('random', '<', rnd), orderBy('random', 'desc'), limit(1));
-                    snapshot = await getDocs(q);
-                }
-
-                let ad = null;
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    ad = {
-                        id: docSnap.id,
-                        mediaUrl: data.url,
-                        type: data.type,
-                        link: data.link,
-                        title: data.title,
-                        sub: data.sub
-                    };
-                });
-                return ad;
-            } catch (error) {
-                console.error("Erro ao buscar anúncio:", error);
-                return null;
-            }
-        };
-
-        // Renderização de anúncios otimizada
-        const renderAdItem = async (ad) => {
-            const adItem = document.createElement('div');
-            adItem.className = 'ad-item';
-
-            const fragment = document.createDocumentFragment();
-
-            // Adicionar o conteúdo da mídia
-            if (ad.type === 'video') {
-                const video = document.createElement('video');
-                video.setAttribute('playsinline', '');
-                video.setAttribute('autoplay', '');
-                video.setAttribute('muted', '');
-                video.setAttribute('loop', '');
-                video.setAttribute('preload', 'metadata');
-
-                const source = document.createElement('source');
-                source.src = ad.mediaUrl;
-                source.type = 'video/mp4';
-
-                video.appendChild(source);
-                fragment.appendChild(video);
-            } else if (ad.type === 'image') {
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'image-container';
-
-                const img = document.createElement('img');
-                img.src = ad.mediaUrl;
-                img.setAttribute('loading', 'lazy');
-                img.setAttribute('alt', 'Conteúdo Patrocinado');
-
-                imgContainer.appendChild(img);
-                fragment.appendChild(imgContainer);
-            }
-
-            // Overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'ad-overlay';
-            fragment.appendChild(overlay);
-
-            // Badge
-            const adBadge = document.createElement('div');
-            adBadge.className = 'ad-badge';
-            adBadge.textContent = 'AD';
-            fragment.appendChild(adBadge);
-
-            // Info
-            const adInfo = document.createElement('div');
-            adInfo.className = 'ad-info';
-            adInfo.innerHTML = `<h3>${ad.title}</h3><p>${ad.sub}</p>`;
-            fragment.appendChild(adInfo);
-
-            // CTA
-            const ctaButton = document.createElement('button');
-            ctaButton.className = 'ad-cta-btn';
-            ctaButton.innerHTML = `Visitar <i class="fa-solid fa-arrow-right"></i>`;
-            ctaButton.addEventListener('click', () => {
-                window.open(ad.link, '_blank');
-            });
-            fragment.appendChild(ctaButton);
-
-            adItem.appendChild(fragment);
-
-            return adItem;
-        };
-
-        // Carregamento otimizado de mídias
-        const loadMoreMedia = async () => {
-            if (isLoading) return;
-            isLoading = true;
-
-            try {
-                const randomMediaItems = await fetchRandomMediaFromFirestore();
-
-                if (randomMediaItems.length === 0) {
-                    console.log("Nenhuma nova mídia para carregar");
-                    isLoading = false;
-                    return;
-                }
-
-                const fragment = document.createDocumentFragment();
-                let videoElements = [];
-
-                for (const item of randomMediaItems) {
-                    try {
-                        const mediaElem = await renderMediaItem(item);
-                        if (mediaElem) {
-                            fragment.appendChild(mediaElem);
-                            totalMediaCount++;
-
-                            // Coleta vídeos para configurar observers depois
-                            if (item.type === 'video') {
-                                const video = mediaElem.querySelector('video');
-                                if (video) videoElements.push(video);
-                            }
-
-                            // Adicionar um anúncio a cada 5 mídias
-                            if (totalMediaCount % 5 === 0) {
-                                try {
-                                    const ad = await fetchRandomAdFromFirestore();
-                                    if (ad) {
-                                        const adElem = await renderAdItem(ad);
-                                        fragment.appendChild(adElem);
-
-                                        // Coleta vídeos de anúncios também
-                                        if (ad.type === 'video') {
-                                            const adVideo = adElem.querySelector('video');
-                                            if (adVideo) videoElements.push(adVideo);
-                                        }
-                                    }
-                                } catch (adError) {
-                                    console.error("Erro ao renderizar anúncio:", adError);
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.error("Erro ao renderizar item de mídia:", err);
-                    }
-                }
-
-                // Anexa todos os elementos de uma vez para melhor performance
-                mediaContainer.appendChild(fragment);
-
-                // Configura os observers para vídeos depois de anexar ao DOM
-                videoElements.forEach(video => {
-                    handleVideoVisibility(video);
-                });
-
-            } catch (error) {
-                console.error("Erro ao carregar mais mídia:", error);
-            } finally {
-                isLoading = false;
-            }
-        };
-
-        // Inicializa a aplicação
-        const initializeMedia = async () => {
-            mediaContainer.innerHTML = '<div class="loading">Loading...</div>';
-
-            // Limpar observers existentes
-            mediaObservers.forEach(observer => {
-                observer.disconnect();
-            });
-            mediaObservers = [];
-            loadedMediaIds.clear();
-            totalMediaCount = 0;
-
-            await loadMoreMedia();
-        };
-
-        // Upload de mídia
-        const uploadMedia = async (file) => {
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
-            const formData = new FormData();
-            formData.append('chat_id', CHAT_ID);
-            formData.append('document', file);
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                if (!data.ok) {
-                    console.error('Erro ao enviar arquivo:', data);
-                    alert('Erro ao enviar arquivo para o Telegram.');
-                } else {
-                    alert('Arquivo enviado com sucesso!');
-                    await initializeMedia();
-                }
-            } catch (error) {
-                console.error('Erro ao enviar arquivo:', error);
-                alert('Erro ao enviar arquivo.');
-            }
-        };
-
-        // Scroll throttling otimizado
-        const throttle = (func, limit) => {
-            let inThrottle;
-            return function() {
-                const args = arguments;
-                const context = this;
-                if (!inThrottle) {
-                    func.apply(context, args);
-                    inThrottle = true;
-                    setTimeout(() => inThrottle = false, limit);
-                }
-            };
-        };
-
-        // Event listeners
-        fileInput.addEventListener('change', (event) => {
-            const files = event.target.files;
-            if (files.length > 0) {
-                for (const file of files) {
-                    uploadMedia(file);
-                }
-            }
-        });
-
-        uploadBtn.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        // Scroll handler otimizado com throttle
-        mediaContainer.addEventListener('scroll', throttle(() => {
-            if (mediaContainer.scrollHeight - mediaContainer.scrollTop <= mediaContainer.clientHeight + 200) {
-                loadMoreMedia();
-            }
-        }, 200));
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeMedia();
-        });
-    </script>
+<script type="module">
+  // Importa os módulos do Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
+  import { getFirestore, collection, query, orderBy, limit, getDocs, where, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+
+  // Configuração do Firebase
+  const firebaseConfig = {
+      apiKey: "AIzaSyArM-m7dvRhtLzSZWQegitYm3X-3QCdHf8",
+      authDomain: "slaptap-70c69.firebaseapp.com",
+      projectId: "slaptap-70c69",
+      storageBucket: "slaptap-70c69.firebasestorage.app",
+      messagingSenderId: "314393069162",
+      appId: "1:314393069162:web:c2234e975c0491bc2bac13",
+      measurementId: "G-CMKKTDN0DE"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
+
+  // Cache DOM reference
+  const mediaContainer = document.getElementById('mediaContainer');
+
+  // Geração e gerenciamento do UserID - simplificado
+  const getUserId = () => {
+      const key = 'userUniqueId';
+      let userId = localStorage.getItem(key);
+      if (!userId) {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          const timestamp = Date.now().toString(36);
+          let randomPart = '';
+          for (let i = 0; i < 16 - timestamp.length; i++) {
+              randomPart += chars[Math.floor(Math.random() * chars.length)];
+          }
+          userId = `${timestamp}${randomPart}`;
+          localStorage.setItem(key, userId);
+      }
+      return userId;
+  };
+  const currentUserId = getUserId();
+
+  // Gerenciamento de mídias já vistas - otimizado
+  const seenMediaKey = 'seenMedia-' + currentUserId;
+  const getSeenMedia = () => {
+      const seen = localStorage.getItem(seenMediaKey);
+      return seen ? JSON.parse(seen) : [];
+  };
+
+  const addSeenMedia = mediaId => {
+      const seen = getSeenMedia();
+      if (!seen.includes(mediaId)) {
+          seen.push(mediaId);
+          localStorage.setItem(seenMediaKey, JSON.stringify(seen));
+      }
+  };
+
+  // Função de "download": salva informações em localStorage
+  const downloadMedia = (item, mediaElem) => {
+      const key = 'downloadedMedia-' + currentUserId;
+      let downloaded = JSON.parse(localStorage.getItem(key)) || [];
+      if (!downloaded.find(it => it.id === item.id)) {
+          downloaded.push({
+              id: item.id,
+              url: item.mediaUrl,
+              type: item.type,
+              timestamp: item.timestamp
+          });
+          localStorage.setItem(key, JSON.stringify(downloaded));
+          updateDoc(doc(db, 'media', item.id), {
+              downloads: increment(1)
+          }).catch(error => console.error("Erro ao atualizar downloads:", error));
+          const downloadsCounter = mediaElem.querySelector('.downloads-display .counter');
+          downloadsCounter.textContent = parseInt(downloadsCounter.textContent) + 1;
+          alert('Mídia salva localmente!');
+      } else {
+          alert('Mídia já está salva!');
+      }
+  };
+
+  const MAX_DIRECT_SIZE = 20 * 1024 * 1024;
+  let isLoading = false;
+  let totalMediaCount = 0;
+  let mediaObservers = [];
+  const loadedMediaIds = new Set();
+
+  // Otimização de performance: IntersectionObserver para vídeos
+  const videoObserverOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.5
+  };
+
+  const handleVideoVisibility = (video) => {
+      const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                  if (video.paused) {
+                      const playPromise = video.play();
+                      if (playPromise !== undefined) {
+                          playPromise.catch(e => {
+                              console.log("Autoplay prevented:", e);
+                          });
+                      }
+                  }
+              } else {
+                  if (!video.paused) {
+                      video.pause();
+                  }
+              }
+          });
+      }, videoObserverOptions);
+
+      observer.observe(video);
+      mediaObservers.push(observer);
+      return observer;
+  };
+
+  // Otimização na criação dos elementos de mídia usando DocumentFragment
+  const renderMediaItem = async (item) => {
+      if (loadedMediaIds.has(item.id)) {
+          return null;
+      }
+      loadedMediaIds.add(item.id);
+
+      const mediaItem = document.createElement('div');
+      mediaItem.className = 'media-item';
+      mediaItem.dataset.id = item.id;
+
+      const fragment = document.createDocumentFragment();
+
+      if (item.type === 'video') {
+          if (item.fileSize > MAX_DIRECT_SIZE) {
+              const errorDiv = document.createElement('div');
+              errorDiv.className = 'error-message';
+              errorDiv.innerHTML = `
+                  <h3>Vídeo muito grande</h3>
+                  <p>${Math.round(item.fileSize / 1024 / 1024)}MB</p>
+              `;
+              fragment.appendChild(errorDiv);
+          } else {
+              const video = document.createElement('video');
+              video.setAttribute('playsinline', '');
+              video.setAttribute('controls', '');
+              video.setAttribute('muted', '');
+              video.setAttribute('loop', '');
+              video.setAttribute('preload', 'metadata');
+
+              const source = document.createElement('source');
+              source.src = item.mediaUrl;
+              source.type = 'video/mp4';
+
+              video.appendChild(source);
+              fragment.appendChild(video);
+
+              // Botão de mudo para controle do áudio
+              const muteBtn = document.createElement('button');
+              muteBtn.className = 'mute-btn';
+              muteBtn.innerHTML = `<i class="fa-solid fa-volume-mute" style="color: white;"></i>`;
+              muteBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  video.muted = !video.muted;
+                  muteBtn.innerHTML = video.muted ?
+                      `<i class="fa-solid fa-volume-mute" style="color: white;"></i>` :
+                      `<i class="fa-solid fa-volume-high" style="color: white;"></i>`;
+              });
+              fragment.appendChild(muteBtn);
+          }
+      } else if (item.type === 'image') {
+          const imgContainer = document.createElement('div');
+          imgContainer.className = 'image-container';
+
+          const img = document.createElement('img');
+          img.src = item.mediaUrl;
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('alt', 'Conteúdo de Mídia');
+
+          imgContainer.appendChild(img);
+          fragment.appendChild(imgContainer);
+      }
+
+      // Informações da mídia
+      const mediaInfo = document.createElement('div');
+      mediaInfo.className = 'media-info';
+      mediaInfo.innerHTML = `<p>Tipo: ${item.type}</p><p>Data: ${item.timestamp}</p>`;
+      fragment.appendChild(mediaInfo);
+
+      // Botão de download
+      const downloadBtn = document.createElement('button');
+      downloadBtn.className = 'download-btn';
+      downloadBtn.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i>`;
+      downloadBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          downloadMedia(item, mediaItem);
+      });
+      fragment.appendChild(downloadBtn);
+
+      // Exibição de likes
+      const likesDisplay = document.createElement('div');
+      likesDisplay.className = 'likes-display';
+      likesDisplay.innerHTML = `<i class="fa-solid fa-heart" style="color: red;"></i><div class="counter">${item.likes || 0}</div>`;
+      fragment.appendChild(likesDisplay);
+
+      // Exibição de downloads
+      const downloadsDisplay = document.createElement('div');
+      downloadsDisplay.className = 'downloads-display';
+      downloadsDisplay.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i><div class="counter">${item.downloads || 0}</div>`;
+      fragment.appendChild(downloadsDisplay);
+
+      addSeenMedia(item.id);
+
+      // Duplo toque para like
+      let lastTap = 0;
+      mediaItem.addEventListener('touchend', (e) => {
+          const currentTime = Date.now();
+          if (currentTime - lastTap < 300) {
+              likeMedia(item, mediaItem);
+              e.preventDefault();
+          }
+          lastTap = currentTime;
+      });
+
+      mediaItem.appendChild(fragment);
+
+      return mediaItem;
+  };
+
+  // Otimização do like
+  const likeMedia = async (item, mediaElem) => {
+      try {
+          const likesCounter = mediaElem.querySelector('.likes-display .counter');
+          const currentLikes = parseInt(likesCounter.textContent);
+          likesCounter.textContent = currentLikes + 1;
+          await updateDoc(doc(db, 'media', item.id), {
+              likes: increment(1)
+          });
+      } catch (error) {
+          console.error("Erro ao atualizar likes:", error);
+          const likesCounter = mediaElem.querySelector('.likes-display .counter');
+          likesCounter.textContent = parseInt(likesCounter.textContent) - 1;
+      }
+  };
+
+  // Busca otimizada para obter mídias
+  const fetchRandomMediaFromFirestore = async () => {
+      try {
+          const mediaCol = collection(db, 'media');
+          const randomMedia = [];
+          const randomNumbers = Array.from({ length: 5 }, () => Math.random());
+
+          const promises = randomNumbers.map(async (rnd) => {
+              let q = query(mediaCol, where('random', '>=', rnd), orderBy('random'), limit(1));
+              let snapshot = await getDocs(q);
+
+              if (snapshot.empty) {
+                  q = query(mediaCol, where('random', '<', rnd), orderBy('random', 'desc'), limit(1));
+                  snapshot = await getDocs(q);
+              }
+
+              snapshot.forEach(docSnap => {
+                  const data = docSnap.data();
+                  if (!loadedMediaIds.has(docSnap.id)) {
+                      randomMedia.push({
+                          id: docSnap.id,
+                          mediaUrl: data.url,
+                          type: data.type,
+                          timestamp: data.timestamp ? data.timestamp.toDate().toLocaleString() : "N/A",
+                          likes: data.likes || 0,
+                          downloads: data.downloads || 0,
+                          fileSize: data.fileSize
+                      });
+                  }
+              });
+          });
+
+          await Promise.all(promises);
+          return randomMedia;
+      } catch (error) {
+          console.error("Erro ao buscar mídia:", error);
+          return [];
+      }
+  };
+
+  // Busca otimizada para obter anúncios
+  const fetchRandomAdFromFirestore = async () => {
+      try {
+          const adsCol = collection(db, 'ads');
+          const rnd = Math.random();
+          let q = query(adsCol, where('random', '>=', rnd), orderBy('random'), limit(1));
+          let snapshot = await getDocs(q);
+
+          if (snapshot.empty) {
+              q = query(adsCol, where('random', '<', rnd), orderBy('random', 'desc'), limit(1));
+              snapshot = await getDocs(q);
+          }
+
+          let ad = null;
+          snapshot.forEach(docSnap => {
+              const data = docSnap.data();
+              ad = {
+                  id: docSnap.id,
+                  mediaUrl: data.url,
+                  type: data.type,
+                  link: data.link,
+                  title: data.title,
+                  sub: data.sub
+              };
+          });
+          return ad;
+      } catch (error) {
+          console.error("Erro ao buscar anúncio:", error);
+          return null;
+      }
+  };
+
+  // Renderização otimizada de anúncios
+  const renderAdItem = async (ad) => {
+      const adItem = document.createElement('div');
+      adItem.className = 'ad-item';
+
+      const fragment = document.createDocumentFragment();
+
+      if (ad.type === 'video') {
+          const video = document.createElement('video');
+          video.setAttribute('playsinline', '');
+          video.setAttribute('autoplay', '');
+          video.setAttribute('muted', '');
+          video.setAttribute('loop', '');
+          video.setAttribute('preload', 'metadata');
+
+          const source = document.createElement('source');
+          source.src = ad.mediaUrl;
+          source.type = 'video/mp4';
+
+          video.appendChild(source);
+          fragment.appendChild(video);
+      } else if (ad.type === 'image') {
+          const imgContainer = document.createElement('div');
+          imgContainer.className = 'image-container';
+
+          const img = document.createElement('img');
+          img.src = ad.mediaUrl;
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('alt', 'Conteúdo Patrocinado');
+
+          imgContainer.appendChild(img);
+          fragment.appendChild(imgContainer);
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'ad-overlay';
+      fragment.appendChild(overlay);
+
+      const adBadge = document.createElement('div');
+      adBadge.className = 'ad-badge';
+      adBadge.textContent = 'AD';
+      fragment.appendChild(adBadge);
+
+      const adInfo = document.createElement('div');
+      adInfo.className = 'ad-info';
+      adInfo.innerHTML = `<h3>${ad.title}</h3><p>${ad.sub}</p>`;
+      fragment.appendChild(adInfo);
+
+      const ctaButton = document.createElement('button');
+      ctaButton.className = 'ad-cta-btn';
+      ctaButton.innerHTML = `Visitar <i class="fa-solid fa-arrow-right"></i>`;
+      ctaButton.addEventListener('click', () => {
+          window.open(ad.link, '_blank');
+      });
+      fragment.appendChild(ctaButton);
+
+      adItem.appendChild(fragment);
+
+      return adItem;
+  };
+
+  // Carregamento otimizado de mídias
+  const loadMoreMedia = async () => {
+      if (isLoading) return;
+      isLoading = true;
+
+      try {
+          const randomMediaItems = await fetchRandomMediaFromFirestore();
+
+          if (randomMediaItems.length === 0) {
+              console.log("Nenhuma nova mídia para carregar");
+              isLoading = false;
+              return;
+          }
+
+          const fragment = document.createDocumentFragment();
+          let videoElements = [];
+
+          for (const item of randomMediaItems) {
+              try {
+                  const mediaElem = await renderMediaItem(item);
+                  if (mediaElem) {
+                      fragment.appendChild(mediaElem);
+                      totalMediaCount++;
+
+                      if (item.type === 'video') {
+                          const video = mediaElem.querySelector('video');
+                          if (video) videoElements.push(video);
+                      }
+
+                      if (totalMediaCount % 5 === 0) {
+                          try {
+                              const ad = await fetchRandomAdFromFirestore();
+                              if (ad) {
+                                  const adElem = await renderAdItem(ad);
+                                  fragment.appendChild(adElem);
+
+                                  if (ad.type === 'video') {
+                                      const adVideo = adElem.querySelector('video');
+                                      if (adVideo) videoElements.push(adVideo);
+                                  }
+                              }
+                          } catch (adError) {
+                              console.error("Erro ao renderizar anúncio:", adError);
+                          }
+                      }
+                  }
+              } catch (err) {
+                  console.error("Erro ao renderizar item de mídia:", err);
+              }
+          }
+
+          mediaContainer.appendChild(fragment);
+
+          videoElements.forEach(video => {
+              handleVideoVisibility(video);
+          });
+
+      } catch (error) {
+          console.error("Erro ao carregar mais mídia:", error);
+      } finally {
+          isLoading = false;
+      }
+  };
+
+  // Inicializa a aplicação
+  const initializeMedia = async () => {
+      mediaContainer.innerHTML = '<div class="loading">Loading...</div>';
+
+      mediaObservers.forEach(observer => {
+          observer.disconnect();
+      });
+      mediaObservers = [];
+      loadedMediaIds.clear();
+      totalMediaCount = 0;
+
+      await loadMoreMedia();
+  };
+
+  // Função de throttle para otimização do scroll
+  const throttle = (func, limit) => {
+      let inThrottle;
+      return function() {
+          const args = arguments;
+          const context = this;
+          if (!inThrottle) {
+              func.apply(context, args);
+              inThrottle = true;
+              setTimeout(() => inThrottle = false, limit);
+          }
+      };
+  };
+
+  // Handler de scroll otimizado
+  mediaContainer.addEventListener('scroll', throttle(() => {
+      if (mediaContainer.scrollHeight - mediaContainer.scrollTop <= mediaContainer.clientHeight + 200) {
+          loadMoreMedia();
+      }
+  }, 200));
+
+  // Inicialização da aplicação
+  document.addEventListener('DOMContentLoaded', () => {
+      initializeMedia();
+  });
+</script>
 </body>
 
 </html>
