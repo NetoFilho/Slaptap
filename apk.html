@@ -7,6 +7,8 @@
     <title>Slaptap</title>
     <link rel="icon" type="image/png" href="Icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+
     <meta name="theme-color" content="#000000">
     <meta name="robots" content="index, follow">
     <style>
@@ -374,7 +376,7 @@
     </style>
 </head>
 
-<body>
+<body
     <div class="media-container" id="mediaContainer">
         <div class="loading">Loading...</div>
     </div>
@@ -892,6 +894,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeMedia();
         });
+
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js")
+                .then(() => console.log("Service Worker registrado!"))
+                .catch((err) => console.log("Erro ao registrar Service Worker:", err));
+        }
     </script>
 </body>
 
