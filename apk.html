@@ -7,8 +7,6 @@
     <title>Slaptap</title>
     <link rel="icon" type="image/png" href="Icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="manifest" href="manifest.json">
-
     <meta name="theme-color" content="#000000">
     <meta name="robots" content="index, follow">
     <style>
@@ -376,7 +374,7 @@
     </style>
 </head>
 
-<body
+<body>
     <div class="media-container" id="mediaContainer">
         <div class="loading">Loading...</div>
     </div>
@@ -385,7 +383,7 @@
         <div class="modal-content">
             <h3>Feature Unavailable</h3>
             <p>Download the APK to access this and other features.</p>
-            <button class="modal-btn" onclick="closeModal()">Go to download</button>
+            <button class="modal-btn" onclick="downloadApk()">Go to download</button>
         </div>
     </div>
 
@@ -396,7 +394,7 @@
         <button class="nav-button upload-button" id="uploadBtn">
             <i class="fa-solid fa-plus"></i>
         </button>
-        <button class="nav-button" onclick="location.href='media.html'">
+        <button class="nav-button" onclick="window.location.href='media.html'">
             <i class="fa-solid fa-images"></i>
         </button>
     </nav>
@@ -536,7 +534,7 @@
             return observer;
         };
 
-        // Criação otimizada de elementos de mídia
+        // Otimização na criação dos elementos de mídia usando DocumentFragment
         const renderMediaItem = async (item) => {
             if (loadedMediaIds.has(item.id)) {
                 return null;
@@ -573,6 +571,7 @@
                     video.appendChild(source);
                     fragment.appendChild(video);
 
+                    // Botão de mudo para controle do áudio
                     const muteBtn = document.createElement('button');
                     muteBtn.className = 'mute-btn';
                     muteBtn.innerHTML = `<i class="fa-solid fa-volume-mute" style="color: white;"></i>`;
@@ -598,11 +597,13 @@
                 fragment.appendChild(imgContainer);
             }
 
+            // Informações da mídia
             const mediaInfo = document.createElement('div');
             mediaInfo.className = 'media-info';
             mediaInfo.innerHTML = `<p>Tipo: ${item.type}</p><p>Data: ${item.timestamp}</p>`;
             fragment.appendChild(mediaInfo);
 
+            // Botão de download
             const downloadBtn = document.createElement('button');
             downloadBtn.className = 'download-btn';
             downloadBtn.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i>`;
@@ -612,11 +613,13 @@
             });
             fragment.appendChild(downloadBtn);
 
+            // Exibição de likes
             const likesDisplay = document.createElement('div');
             likesDisplay.className = 'likes-display';
             likesDisplay.innerHTML = `<i class="fa-solid fa-heart" style="color: red;"></i><div class="counter">${item.likes || 0}</div>`;
             fragment.appendChild(likesDisplay);
 
+            // Exibição de downloads
             const downloadsDisplay = document.createElement('div');
             downloadsDisplay.className = 'downloads-display';
             downloadsDisplay.innerHTML = `<i class="fa-solid fa-download" style="color: white;"></i><div class="counter">${item.downloads || 0}</div>`;
@@ -624,6 +627,7 @@
 
             addSeenMedia(item.id);
 
+            // Duplo toque para like
             let lastTap = 0;
             mediaItem.addEventListener('touchend', (e) => {
                 const currentTime = Date.now();
@@ -645,7 +649,6 @@
                 const likesCounter = mediaElem.querySelector('.likes-display .counter');
                 const currentLikes = parseInt(likesCounter.textContent);
                 likesCounter.textContent = currentLikes + 1;
-
                 await updateDoc(doc(db, 'media', item.id), {
                     likes: increment(1)
                 });
@@ -894,13 +897,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeMedia();
         });
-
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("/sw.js")
-                .then(() => console.log("Service Worker registrado!"))
-                .catch((err) => console.log("Erro ao registrar Service Worker:", err));
-        }
     </script>
+
 </body>
 
 </html>
