@@ -247,7 +247,6 @@
 </head>
 
 <body>
-    <!-- Barra superior -->
     <div class="top-bar">
         <div class="left-section">
             <button class="back-button" onclick="history.back()">
@@ -264,10 +263,8 @@
         </button>
     </div>
 
-    <!-- Galeria de mídias -->
     <div class="media-grid" id="mediaGrid"></div>
 
-    <!-- Modal para visualização em tela cheia -->
     <div class="modal" id="mediaModal">
         <button class="close-modal" onclick="closeModal()">×</button>
         <button class="info-button" onclick="toggleInfo()">i</button>
@@ -309,7 +306,6 @@
             selectionMode = false,
             pressTimer;
 
-        // Função para formatar datas de forma segura
         function formatDate(d) {
             let date = new Date(d);
             if (isNaN(date.getTime())) return "N/A";
@@ -322,7 +318,7 @@
             });
         }
 
-        // Funções para seleção de mídia
+        // Lógica de seleção de mídia
         function startPress(index) {
             pressTimer = setTimeout(() => {
                 enterSelectionMode(index);
@@ -357,11 +353,8 @@
         }
 
         function handleClick(index) {
-            if (selectionMode) {
-                toggleSelection(index);
-            } else {
-                openModal(index);
-            }
+            if (selectionMode) toggleSelection(index);
+            else openModal(index);
         }
 
         function deleteSelected() {
@@ -387,8 +380,15 @@
             }
         }
 
+        // Função para gerar a URL do poster para vídeos do Cloudinary
+        function getPosterUrl(videoUrl, offset = 5) {
+            if (!videoUrl.includes('cloudinary.com')) return '';
+            return videoUrl
+                .replace('/video/upload/', `/video/upload/so_${offset}/`)
+                .replace(/\.[^.]+$/, '.jpg');
+        }
+
         // Renderiza a grid de mídias a partir do localStorage
-        // Utiliza a chave "downloadedMedia-" + currentUserId
         function renderMediaGrid() {
             const grid = document.getElementById('mediaGrid');
             savedMedia = JSON.parse(localStorage.getItem('downloadedMedia-' + currentUserId)) || [];
@@ -402,7 +402,9 @@
           ontouchend="cancelPress()"
           onclick="handleClick(${i})">
           ${m.type.toLowerCase() === 'video' ?
-            `<video src="${m.url}" muted loop playsinline>Seu navegador não suporta vídeos.</video>` :
+            `<video src="${m.url}" poster="${getPosterUrl(m.url)}" muted loop playsinline>
+               Seu navegador não suporta vídeos.
+             </video>` :
             `<img src="${m.url}" alt="Mídia ${i + 1}">`}
           <div class="timestamp">${formatDate(m.timestamp)}</div>
         </div>
@@ -419,7 +421,7 @@
             });
         }
 
-        // Modal para visualização em tela cheia
+        // Modal de visualização em tela cheia
         function openModal(i) {
             currentMediaIndex = i;
             const modal = document.getElementById('mediaModal');
@@ -482,11 +484,8 @@
             info.style.display = "block";
         }
 
-        // Eventos para sair do modo de seleção
         document.addEventListener('click', (event) => {
-            if (!event.target.closest('.media-item') && !event.target.closest('.delete-button')) {
-                exitSelectionMode();
-            }
+            if (!event.target.closest('.media-item') && !event.target.closest('.delete-button')) exitSelectionMode();
         });
         document.addEventListener('DOMContentLoaded', renderMediaGrid);
 
@@ -519,9 +518,7 @@
                 );
                 let scale = currentDistance / initialDistance;
                 let currentItem = modalContent.children[currentMediaIndex].querySelector('img,video');
-                if (currentItem) {
-                    currentItem.style.transform = `scale(${scale})`;
-                }
+                if (currentItem) currentItem.style.transform = `scale(${scale})`;
             } else if (e.touches.length === 1 && !pinchActive) {
                 dx = e.touches[0].clientX - touchStartX;
                 let perc = (dx / modalContentContainer.clientWidth) * 100;
@@ -532,15 +529,12 @@
         modalContentContainer.addEventListener('touchend', e => {
             if (pinchActive) {
                 let currentItem = modalContent.children[currentMediaIndex].querySelector('img,video');
-                if (currentItem) {
-                    currentItem.style.transform = "scale(1)";
-                }
+                if (currentItem) currentItem.style.transform = "scale(1)";
                 pinchActive = false;
             } else {
                 modalContent.style.transition = "";
                 if (Math.abs(dx) > (modalContentContainer.clientWidth * 0.3)) {
-                    if (dx < 0) navigateModal(1);
-                    else navigateModal(-1);
+                    dx < 0 ? navigateModal(1) : navigateModal(-1);
                 } else {
                     updateModalContent();
                 }
@@ -558,7 +552,6 @@
             }
         });
 
-        // Função de download que salva a mídia no localStorage com a data em formato ISO
         function downloadMedia(item) {
             const key = 'downloadedMedia-' + currentUserId;
             let downloaded = localStorage.getItem(key);
@@ -566,11 +559,9 @@
             if (!downloaded.find(it => it.id === item.id)) {
                 downloaded.push({
                     id: item.id,
-                    url: item.mediaUrl, // Certifique-se de que a URL está presente
+                    url: item.mediaUrl,
                     type: item.type,
-                    timestamp: item.timestamp && item.timestamp !== "N/A" ?
-                        new Date(item.timestamp).toISOString() :
-                        "N/A"
+                    timestamp: item.timestamp && item.timestamp !== "N/A" ? new Date(item.timestamp).toISOString() : "N/A"
                 });
                 localStorage.setItem(key, JSON.stringify(downloaded));
                 alert('Mídia salva localmente!');
